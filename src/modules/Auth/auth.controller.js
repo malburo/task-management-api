@@ -23,7 +23,7 @@ const login = async (req, res, next) => {
       return Result.error(res, { message: 'Wrong password' }, 401);
     }
     const access_token = createAccessToken(user);
-    res.cookie('access_token', access_token, { httpOnly: true });
+    res.cookie('access_token', access_token, { httpOnly: true, sameSite: 'none' });
     Result.success(res);
   } catch (error) {
     return next(error);
@@ -46,7 +46,7 @@ const register = async (req, res, next) => {
       profilePictureUrl: `https://avatars.dicebear.com/4.5/api/initials/${fullname}.svg`,
     });
     const access_token = createAccessToken(newUser);
-    res.cookie('access_token', access_token, { httpOnly: true });
+    res.cookie('access_token', access_token, { httpOnly: true, sameSite: 'none' });
     Result.success(res);
   } catch (error) {
     return next(error);
