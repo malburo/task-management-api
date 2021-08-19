@@ -22,7 +22,8 @@
     "passport-github": "^1.1.0"
   },
   "scripts": {
-    "start": "nodemon --exec babel-node src/server",
+    "start": "babel-node src/server",
+    "dev": "nodemon --exec babel-node src/server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
