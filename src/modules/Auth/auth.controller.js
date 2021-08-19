@@ -23,7 +23,7 @@ const login = async (req, res, next) => {
       return Result.error(res, { message: 'Wrong password' }, 401);
     }
     const access_token = createAccessToken(user);
-    res.cookie('access_token', access_token, { httpOnly: true, secure: false });
+    res.cookie('access_token', access_token, { httpOnly: true, secure: true, sameSite: 'None' });
     Result.success(res);
   } catch (error) {
     return next(error);

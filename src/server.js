@@ -17,7 +17,8 @@ const port = process.env.PORT || 8080;
 
 app.use(morgan('tiny'));
 app.use(cookieParser());
-app.use(cors({ origin: 'http://localhost:3000', credentials: true, sameSite: false }));
+app.set('trust proxy', 1);
+app.use(cors({ origin: 'http://localhost:3000', credentials: true, proxy: true }));
 app.use(passport.initialize());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
