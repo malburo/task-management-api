@@ -26,6 +26,7 @@ const login = async (req, res, next) => {
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: true,
+      domain: 'http://localhost:3000',
       sameSite: process.env.NODE_ENV === 'production' ? 'None' : '',
     });
     Result.success(res);
