@@ -6,7 +6,6 @@ import User from '../modules/User/user.model';
 const checkToken = async (req, res, next) => {
   try {
     let token = req.cookies['access_token'];
-    console.log(token);
     if (!token) {
       return Result.error(res, { message: 'No token provided' }, 403);
     }

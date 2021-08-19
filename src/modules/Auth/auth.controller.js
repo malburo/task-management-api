@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
-import Result from '../../helpers/result.helper';
-import { createAccessToken } from '../../helpers/token.helper';
+import Result from 'helpers/result.helper';
+import { createAccessToken } from 'helpers/token.helper';
 import User from '../User/user.model';
 
 const getMe = async (req, res, next) => {
@@ -23,7 +23,11 @@ const login = async (req, res, next) => {
       return Result.error(res, { message: 'Wrong password' }, 401);
     }
     const access_token = createAccessToken(user);
-    res.cookie('access_token', access_token, { httpOnly: true, secure: true, sameSite: 'None' });
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : '',
+    });
     Result.success(res);
   } catch (error) {
     return next(error);
@@ -46,7 +50,11 @@ const register = async (req, res, next) => {
       profilePictureUrl: `https://avatars.dicebear.com/4.5/api/initials/${fullname}.svg`,
     });
     const access_token = createAccessToken(newUser);
-    res.cookie('access_token', access_token, { httpOnly: true });
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : '',
+    });
     Result.success(res);
   } catch (error) {
     return next(error);
@@ -59,8 +67,12 @@ const loginWithGithub = async (req, res, next) => {
     const checkUser = await User.find({ email });
     if (checkUser.length) {
       const access_token = createAccessToken(checkUser);
-      res.cookie('access_token', access_token, { httpOnly: true });
-      res.redirect('http://localhost:3000/profile');
+      res.cookie('access_token', access_token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : '',
+      });
+      res.redirect(process.env.CLIENT_URL);
       return;
     }
     const newUser = await User.create({
@@ -69,8 +81,12 @@ const loginWithGithub = async (req, res, next) => {
       profilePictureUrl: avatar_url,
     });
     const access_token = createAccessToken(newUser);
-    res.cookie('access_token', access_token);
-    res.redirect('http://localhost:3000/profile');
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : '',
+    });
+    res.redirect(process.env.CLIENT_URL);
   } catch (error) {
     return next(error);
   }
