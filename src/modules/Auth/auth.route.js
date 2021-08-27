@@ -14,5 +14,4 @@ AuthRouter.route('/github/callback').get(
   passport.authenticate('github', { assignProperty: 'federatedUser', failureRedirect: '/login' }),
   authController.loginWithGithub
 );
-AuthRouter.route('/logout').get(authController.logout);
 export default AuthRouter;

@@ -1,4 +1,3 @@
-import { corsConfig } from 'config/cors.config';
 import { configPassportGithub } from 'config/passportGithub.config';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -18,8 +17,7 @@ const port = process.env.PORT || 8000;
 
 app.use(morgan('tiny'));
 app.use(cookieParser());
-app.set('trust proxy', 1);
-app.use(cors(corsConfig));
+app.use(cors({}));
 app.use(passport.initialize());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());

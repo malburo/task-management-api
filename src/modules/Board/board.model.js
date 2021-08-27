@@ -8,6 +8,7 @@ const boardSchema = new Schema(
     coverUrl: String,
     adminId: { type: Schema.Types.ObjectId, ref: 'users' },
     membersId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
+    columnOrder: [{ type: Schema.Types.ObjectId, ref: 'columns' }],
   },
   {
     toJSON: {
@@ -22,6 +23,12 @@ const boardSchema = new Schema(
     timestamps: true,
   }
 );
+
+boardSchema.virtual('columns', {
+  ref: 'columns',
+  localField: 'columnOrder',
+  foreignField: '_id',
+});
 
 const Board = model('boards', boardSchema);
 

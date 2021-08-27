@@ -1,10 +1,10 @@
-import { Schema, Document, model, Model } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
 const ColumnSchema = new Schema(
   {
     title: String,
-    pos: { type: Number, required: true },
     boardId: { type: Schema.Types.ObjectId, ref: 'boards' },
+    taskOrder: [{ type: Schema.Types.ObjectId, ref: 'tasks' }],
   },
   {
     toJSON: {
@@ -20,6 +20,12 @@ const ColumnSchema = new Schema(
   }
 );
 
+ColumnSchema.virtual('tasks', {
+  ref: 'tasks',
+  localField: 'taskOrder',
+  foreignField: '_id',
+});
+
 const Column = model('columns', ColumnSchema);
 
-export default List;
+export default Column;
