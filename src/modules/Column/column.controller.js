@@ -1,5 +1,6 @@
 import Result from 'helpers/result.helper';
 import Board from 'modules/Board/board.model';
+import Task from 'modules/Task/task.model';
 import Column from './column.model';
 
 const create = async (req, res, next) => {
@@ -16,5 +17,23 @@ const create = async (req, res, next) => {
   }
 };
 
-const columnController = { create };
+const update = async (req, res, next) => {
+  try {
+    const { columnId } = req.params;
+    const updateData = { ...req.body, updateAt: Date.now() };
+    if (updateData._id) delete updateData._id;
+    if (updateData.tasks) delete updateData.tasks;
+    if (updateData.taskId) {
+      await Task.findByIdAndUpdate(updateData.taskId, { $set: { columnId } }).lean();
+      delete updateData.taskId;
+    }
+    const updatedColumn = await Column.findByIdAndUpdate(columnId, { $set: updateData }).lean();
+    Result.success(res, { updatedColumn });
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+};
+
+const columnController = { create, update };
 export default columnController;

@@ -26,8 +26,8 @@ const boardSchema = new Schema(
 
 boardSchema.virtual('columns', {
   ref: 'columns',
-  localField: 'columnOrder',
-  foreignField: '_id',
+  localField: '_id',
+  foreignField: 'boardId',
 });
 
 const Board = model('boards', boardSchema);

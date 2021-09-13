@@ -16,5 +16,18 @@ const create = async (req, res, next) => {
   }
 };
 
-const taskController = { create };
+const update = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+    const updateData = { ...req.body, updateAt: Date.now() };
+    if (updateData._id) delete updateData._id;
+
+    const updatedTask = await Task.findByIdAndUpdate(taskId, { $set: updateData }).lean();
+    Result.success(res, { updatedTask });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const taskController = { create, update };
 export default taskController;

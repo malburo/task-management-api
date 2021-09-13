@@ -1,4 +1,4 @@
-import { Schema, Document, model, Model } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
 const taskSchema = new Schema(
   {

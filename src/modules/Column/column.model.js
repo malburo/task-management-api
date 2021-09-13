@@ -22,8 +22,8 @@ const ColumnSchema = new Schema(
 
 ColumnSchema.virtual('tasks', {
   ref: 'tasks',
-  localField: 'taskOrder',
-  foreignField: '_id',
+  localField: '_id',
+  foreignField: 'columnId',
 });
 
 const Column = model('columns', ColumnSchema);

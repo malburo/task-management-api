@@ -8,6 +8,15 @@ import path from 'path';
 import { connectDB } from './db';
 import Result from './helpers/result.helper';
 import MasterRouter from './routes';
+import http from 'http';
+import socketIo from 'socket.io';
+const server = http.createServer(app);
+
+const io = socketIo(server, {
+  cors: {
+    origin: 'http://localhost:3000',
+  },
+});
 
 require('dotenv').config();
 connectDB();
@@ -32,4 +41,10 @@ app.use(function (err, req, res, next) {
 
 app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`);
+});
+
+app.io = io;
+
+server.listen(8001, () => {
+  console.log('listening on *:8001');
 });
