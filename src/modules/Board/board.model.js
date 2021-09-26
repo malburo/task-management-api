@@ -1,24 +1,17 @@
-import { Schema, Document, model, Model } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
 const boardSchema = new Schema(
   {
-    isPrivate: Boolean,
     title: String,
     description: String,
     coverUrl: String,
-    adminId: { type: Schema.Types.ObjectId, ref: 'users' },
-    membersId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
+    isPrivate: Boolean,
     columnOrder: [{ type: Schema.Types.ObjectId, ref: 'columns' }],
   },
   {
     toJSON: {
       virtuals: true,
       versionKey: false,
-      transform: (doc, obj) => {
-        obj.id = obj._id;
-        delete obj._id;
-        return obj;
-      },
     },
     timestamps: true,
   }
@@ -26,6 +19,12 @@ const boardSchema = new Schema(
 
 boardSchema.virtual('columns', {
   ref: 'columns',
+  localField: '_id',
+  foreignField: 'boardId',
+});
+
+boardSchema.virtual('members', {
+  ref: 'members',
   localField: '_id',
   foreignField: 'boardId',
 });

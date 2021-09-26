@@ -1,10 +1,10 @@
 import Result from 'helpers/result.helper';
-import Board from './board.model';
+import boardService from './board.service';
 
 const getAll = async (req, res, next) => {
   try {
-    const boards = await Board.find({}).lean();
-    Result.success(res, { boards });
+    const { boards, pagination } = await boardService.getAll(req.query);
+    Result.success(res, { boards, pagination });
   } catch (error) {
     return next(error);
   }
@@ -13,16 +13,8 @@ const getAll = async (req, res, next) => {
 const getOne = async (req, res, next) => {
   try {
     const { boardId } = req.params;
-
-    // req.app.io.emit('hello', 'world');
-    const board = await Board.findById(boardId)
-      .populate({
-        path: 'columns',
-        populate: { path: 'tasks' },
-      })
-      .lean();
-
-    Result.success(res, { board });
+    const fullBoard = await boardService.getOne(boardId);
+    Result.success(res, fullBoard);
   } catch (error) {
     return next(error);
   }
@@ -30,7 +22,7 @@ const getOne = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const newBoard = await Board.create({
+    const newBoard = await boardService.create({
       ...req.body,
       adminId: req.user._id,
     });
@@ -46,8 +38,7 @@ const update = async (req, res, next) => {
     const updateData = { ...req.body, updateAt: Date.now() };
     if (updateData._id) delete updateData._id;
     if (updateData.columns) delete updateData.columns;
-
-    const updatedBoard = await Board.findByIdAndUpdate(boardId, { $set: updateData }).lean();
+    const updatedBoard = await boardService.update(boardId, updateData);
     Result.success(res, { updatedBoard });
   } catch (error) {
     return next(error);
