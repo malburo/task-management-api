@@ -2,20 +2,19 @@ import { model, Schema } from 'mongoose';
 
 const taskSchema = new Schema(
   {
-    content: String,
+    title: String,
+    description: String,
     coverUrl: String,
+    deadlineDay: Date,
+    reminderDay: Date,
     columnId: { type: Schema.Types.ObjectId, ref: 'columns' },
-    membersId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
+    repicipentsId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
+    labelsId: [{ type: Schema.Types.ObjectId, ref: 'labels' }],
   },
   {
     toJSON: {
       virtuals: true,
       versionKey: false,
-      transform: (doc, obj) => {
-        obj.id = obj._id;
-        delete obj._id;
-        return obj;
-      },
     },
     timestamps: true,
   }

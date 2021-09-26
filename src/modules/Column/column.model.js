@@ -10,11 +10,6 @@ const ColumnSchema = new Schema(
     toJSON: {
       virtuals: true,
       versionKey: false,
-      transform: (doc, obj) => {
-        obj.id = obj._id;
-        delete obj._id;
-        return obj;
-      },
     },
     timestamps: true,
   }

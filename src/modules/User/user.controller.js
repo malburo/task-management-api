@@ -2,11 +2,15 @@ import bcrypt from 'bcrypt';
 import Result from '../../helpers/result.helper';
 import User from '../User/user.model';
 
-const getUser = async (req, res, next) => {
+const getAll = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    const user = await User.findById(userId);
-    Result.success(res, { user }, 201);
+    const { search } = req.query;
+    if (req.query.search) {
+      const users = await User.find({ $or: [{ email: search }, { username: search }] });
+      return Result.success(res, { users }, 201);
+    }
+    const users = await User.find({});
+    Result.success(res, { users }, 201);
   } catch (error) {
     return next(error);
   }
@@ -67,5 +71,5 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-const userController = { getUser, updateInfo, updatePassword, updateAvatar, deleteUser };
+const userController = { getAll, updateInfo, updatePassword, updateAvatar, deleteUser };
 export default userController;
