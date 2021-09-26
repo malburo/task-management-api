@@ -36,6 +36,7 @@ configPassportGithub();
 MasterRouter(app);
 
 app.use(function (err, req, res, next) {
+  console.log(err);
   return Result.error(res, { message: err }, 500);
 });
 

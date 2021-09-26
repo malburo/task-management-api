@@ -13,22 +13,20 @@ const getMe = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const { account, password } = req.body;
+    const user = await User.findOne({ $or: [{ email: account }, { username: account }] }).select('+password');
     if (!user) {
       return Result.error(res, { message: 'Email does not exist' }, 401);
+    }
+    if (!user.password) {
+      return Result.error(res, { message: 'Please login using github with this account' }, 401);
     }
     const comparePassword = await bcrypt.compare(password, user.password);
     if (!comparePassword) {
       return Result.error(res, { message: 'Wrong password' }, 401);
     }
     const access_token = createAccessToken(user);
-    const currentUser = {
-      fullname: user.fullname,
-      email: user.email,
-      profilePictureUrl: user.profilePictureUrl,
-    };
-    Result.success(res, { access_token, currentUser }, 201);
+    Result.success(res, { access_token }, 201);
   } catch (error) {
     return next(error);
   }
@@ -36,7 +34,11 @@ const login = async (req, res, next) => {
 
 const register = async (req, res, next) => {
   try {
-    const { fullname, email, password } = req.body;
+    const { fullname, username, email, password } = req.body;
+    const checkUsername = await User.find({ username }).countDocuments();
+    if (checkUsername) {
+      return Result.error(res, { message: 'Username này đã được sử dụng' });
+    }
     const checkEmail = await User.find({ email }).countDocuments();
     if (checkEmail) {
       return Result.error(res, { message: 'Email này đã được sử dụng' });
@@ -45,17 +47,13 @@ const register = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const newUser = await User.create({
       fullname,
+      username,
       email,
       password: hashedPassword,
       profilePictureUrl: `https://avatars.dicebear.com/4.5/api/initials/${fullname}.svg`,
     });
     const access_token = createAccessToken(newUser);
-    const currentUser = {
-      fullname: newUser.fullname,
-      email: newUser.email,
-      profilePictureUrl: newUser.profilePictureUrl,
-    };
-    Result.success(res, { access_token, currentUser }, 201);
+    Result.success(res, { access_token }, 201);
   } catch (error) {
     return next(error);
   }
@@ -63,7 +61,7 @@ const register = async (req, res, next) => {
 
 const loginWithGithub = async (req, res, next) => {
   try {
-    const { email, username, avatar_url } = req.federatedUser._json;
+    const { email, login, avatar_url } = req.federatedUser._json;
     const checkUser = await User.find({ email });
     if (checkUser.length) {
       const access_token = createAccessToken(checkUser);
@@ -71,7 +69,8 @@ const loginWithGithub = async (req, res, next) => {
       return;
     }
     const newUser = await User.create({
-      fullname: username,
+      fullname: login,
+      username: login,
       email,
       profilePictureUrl: avatar_url,
     });
