@@ -37,7 +37,7 @@ const getOne = async (boardId) => {
 
 const create = async (data) => {
   try {
-    const newBoard = await Board.create(data).lean();
+    const newBoard = await Board.create(data);
     return newBoard;
   } catch (error) {
     throw error;

@@ -1,20 +1,33 @@
-const { Schema } = require("mongoose");
+import { model, Schema } from 'mongoose';
 
 const roomScheme = new Schema(
-    {
-        boardId: { type: Schema.Types.ObjectId, ref: 'boards' },
-        members: [{ type: Schema.Types.ObjectId, ref: 'users' }],
-        name: String,
-        isGeneral: Boolean,
+  {
+    boardId: { type: Schema.Types.ObjectId, ref: 'boards' },
+    userId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
+    name: String,
+    isGeneral: Boolean,
+  },
+  {
+    toJSON: {
+      virtuals: true,
+      versionKey: false,
     },
-    {
-        toJSON: {
-            virtuals: true,
-            versionKey: false
-        },
-        timestamps: true,
-    }
+    timestamps: true,
+  }
 );
+
+roomScheme.virtual('board', {
+  ref: 'boards',
+  localField: 'boardId',
+  foreignField: '_id',
+  justOne: true,
+});
+
+roomScheme.virtual('members', {
+  ref: 'users',
+  localField: 'userId',
+  foreignField: '_id',
+});
 
 const Room = model('rooms', roomScheme);
 

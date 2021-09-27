@@ -1,88 +1,103 @@
-import Result from "helpers/result.helper";
-import Room from "./room.model";
-import roomService from "./room.service";
-import User from '../User/user.model'
+import Result from 'helpers/result.helper';
+import Room from './room.model';
+import roomService from './room.service';
+import User from '../User/user.model';
+import { Mongoose, Schema } from 'mongoose';
 
-const getAllRoomInBoard = async (req, res, next) => {
-    try {
-        const data = req.params;
-        const rooms = await roomService.getAllRoomInBoard({boardId: data});
-        Result.success(res, { rooms });
-    } catch (err) {
-        next(err);
-    };
-}
+const getAllYourRoomInBoard = async (req, res, next) => {
+  try {
+    const boardId = req.params;
+    let rooms = await roomService.getAllRoomInBoard(boardId);
+    rooms = rooms.filter((r) => r.userId.some((i) => i.toString() == req.user._id));
+    Result.success(res, { rooms });
+  } catch (err) {
+    next(err);
+  }
+};
 
 const getOne = async (req, res, next) => {
-    try {
-        const data = req.params;
-        const room = await roomService.getOne({roomId: data});
-        Result.success(res, {room});
-    } catch (err) {
-        next(err);
-    };
-}
+  try {
+    const roomId = req.params;
+    const room = await roomService.getOne(roomId);
+    Result.success(res, { room });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const create = async (req, res, next) => {
+  try {
+    const data = { ...req.body };
+    data.userId = [req.user._id];
+    const newRoom = await roomService.create(data);
+    Result.success(res, { newRoom });
+  } catch (err) {
+    next(err);
+  }
+};
 
 const addMember = async (req, res, next) => {
-    try{
-        const {userId, boardId} = req.body;
-        const generalRoom = await Room.find({boardId, isGeneral: true});
-        if(generalRoom.length != 1) {
-            return Result.error(res, 'Kênh không tồn tại');
-        }
-        if(generalRoom.members.includes(userId)){
-            return Result.error(res, 'User đã tồn tại trong kênh chat');
-        }
-        const newMember = await User.findById(userId);
-        if(newMember == null){
-            return Result.error(res, 'User không tồn tại');
-        }
-
-        for(let item in generalRoom.members){
-            await roomService.create({boardId, members: [userId, item]});
-        }
-
-        generalRoom.members.push(userId);
-        
-        let updatedRoom = await Room.findOneAndUpdate(generalRoom._id, generalRoom);
-        
-        Result.success(res, updatedRoom);
-
-    } catch (err) {
-        next(err);
+  try {
+    const { boardId } = req.params;
+    const { userId } = req.body;
+    const generalRoom = await Room.findOne({ boardId, isGeneral: true }).lean();
+    if (generalRoom == null) {
+      return Result.error(res, 'Kênh không tồn tại');
     }
-}
+    const newMember = await User.findById(userId);
+    if (newMember == null) {
+      return Result.error(res, 'User không tồn tại');
+    }
+    if (generalRoom.userId.some((i) => i.toString() == userId)) {
+      return Result.error(res, 'User đã tồn tại trong kênh chat');
+    }
+
+    generalRoom.userId.forEach((i) => {
+      let data = { boardId, userId: [newMember._id, i], isGeneral: false };
+      roomService.create(data);
+    });
+
+    generalRoom.userId.push(userId);
+
+    let updatedRoom = await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom, { new: true });
+
+    Result.success(res, updatedRoom);
+  } catch (err) {
+    next(err);
+  }
+};
 
 const removeMember = async (req, res, next) => {
-    try{
-        const {userId, boardId} = req.body;
-        const generalRoom = await Room.find({boardId, isGeneral: true});
-        if(generalRoom.length != 1) {
-            return Result.error(res, 'Kênh không tồn tại');
-        }
-        if(!generalRoom.members.includes(userId)){
-            return Result.error(res, 'User không tồn tại trong kênh chat');
-        }
-        const removeMember = await User.findById(userId);
-        if(removeMember == null){
-            return Result.error(res, 'User không tồn tại');
-        }
-        generalRoom.members = generalRoom.members.filter(item => item != userId);
-        await room.findOneAndUpdate(generalRoom._id, generalRoom);
-
-        const privateRoom = await Room.find({members: userId, boardId, isGeneral: false});
-        const rs = await Room.deleteById(privateRoom._id);
-        Result.success(res, "done");
-    } catch (err) {
-        next(err);
+  try {
+    const { boardId } = req.params;
+    const { userId } = req.body;
+    const generalRoom = await Room.findOne({ boardId, isGeneral: true }).lean();
+    if (generalRoom == null) {
+      return Result.error(res, 'Kênh không tồn tại');
     }
-}
+    const newMember = await User.findById(userId);
+    if (newMember == null) {
+      return Result.error(res, 'User không tồn tại');
+    }
+    if (!generalRoom.userId.some((i) => i.toString() == userId)) {
+      return Result.error(res, 'User không tồn tại trong kênh chat');
+    }
+    generalRoom.userId = generalRoom.userId.filter((item) => item.toString() != userId);
+    await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom);
+
+    const rs = await Room.deleteMany({ isGeneral: false, boardId, userId });
+    Result.success(res, { rs });
+  } catch (err) {
+    next(err);
+  }
+};
 
 const roomController = {
-    getAllRoomInBoard,
-    getOne,
-    addMember,
-    removeMember
-}
+  getAllYourRoomInBoard,
+  getOne,
+  create,
+  addMember,
+  removeMember,
+};
 
-export default roomController
+export default roomController;

@@ -10,6 +10,7 @@ import Result from './helpers/result.helper';
 import MasterRouter from './routes';
 import http from 'http';
 import socketIo from 'socket.io';
+import User from './modules/User/user.model';
 const server = http.createServer(app);
 
 const io = socketIo(server, {

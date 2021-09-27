@@ -1,20 +1,34 @@
-import { Schema } from "mongoose"
+import { model, Schema } from 'mongoose';
 
-const messageCheme = new Schema(
-    {
-        roomId: { type: Scheme.Types.ObjectId, ref: 'rooms' },
-        userId: { type: Schema.Types.ObjectId, ref: 'users' },
-        content: String
+const messageSCheme = new Schema(
+  {
+    roomId: { type: Schema.Types.ObjectId, ref: 'rooms' },
+    userId: { type: Schema.Types.ObjectId, ref: 'users' },
+    content: String,
+  },
+  {
+    toJSON: {
+      virtuals: true,
+      versionKey: false,
     },
-    {
-        toJSON: {
-            virtuals: true,
-            versionKey: false
-        },
-        timestamps: true,
-    }
+    timestamps: true,
+  }
 );
 
-const Message = model('messages', messageCheme);
+messageSCheme.virtual('room', {
+  ref: 'rooms',
+  localField: 'roomId',
+  foreignField: '_id',
+  justOne: true,
+});
+
+messageSCheme.virtual('user', {
+  ref: 'users',
+  localField: 'userId',
+  foreignField: '_id',
+  justOne: true,
+});
+
+const Message = model('messages', messageSCheme);
 
 export default Message;
