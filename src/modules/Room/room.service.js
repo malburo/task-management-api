@@ -2,7 +2,7 @@ import Room from './room.model';
 
 const getAllRoomInBoard = async (data) => {
   try {
-    const rooms = await Room.find({ boardId: data.boardId }).populate('members').lean();
+    const rooms = await Room.find({ boardId: data.boardId }).populate('board').populate('members').lean();
     return rooms;
   } catch (err) {
     throw err;
@@ -11,7 +11,7 @@ const getAllRoomInBoard = async (data) => {
 
 const getOne = async (data) => {
   try {
-    const room = await Room.find({ _id: data.roomId }).populate('members').populate('board').lean();
+    const room = await Room.findOne({ _id: data.roomId }).populate('board').populate('members').lean();
     return room;
   } catch (err) {
     throw err;

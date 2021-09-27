@@ -8,6 +8,11 @@ const getAllYourRoomInBoard = async (req, res, next) => {
     const boardId = req.params;
     let rooms = await roomService.getAllRoomInBoard(boardId);
     rooms = rooms.filter((r) => r.userId.some((i) => i.toString() == req.user._id));
+    rooms = rooms.map((i) => {
+      if (i.isGeneral) i.name = i.board.title;
+      else i.name = i.members.filter((m) => m._id.toString() != req.user._id.toString())[0].fullname;
+      return i;
+    });
     Result.success(res, { rooms });
   } catch (err) {
     next(err);
@@ -18,6 +23,8 @@ const getOne = async (req, res, next) => {
   try {
     const roomId = req.params;
     const room = await roomService.getOne(roomId);
+    if (room.isGeneral) room.name = room.board.title;
+    else room.name = room.members.filter((m) => m._id.toString() != req.user._id.toString())[0].fullname;
     Result.success(res, { room });
   } catch (err) {
     next(err);
