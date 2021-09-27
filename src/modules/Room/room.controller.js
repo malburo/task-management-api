@@ -2,7 +2,6 @@ import Result from 'helpers/result.helper';
 import Room from './room.model';
 import roomService from './room.service';
 import User from '../User/user.model';
-import { Mongoose, Schema } from 'mongoose';
 
 const getAllYourRoomInBoard = async (req, res, next) => {
   try {
