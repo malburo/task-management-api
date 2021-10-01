@@ -2,7 +2,7 @@ import Message from './message.model';
 
 const getAllInRoom = async (data) => {
   try {
-    const messages = await Message.find({ roomId: data.roomId }).lean();
+    const messages = await Message.find({ roomId: data.roomId }).populate('postedBy').lean();
     return messages;
   } catch (err) {
     throw err;

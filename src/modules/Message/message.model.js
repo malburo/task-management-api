@@ -22,7 +22,7 @@ messageSCheme.virtual('room', {
   justOne: true,
 });
 
-messageSCheme.virtual('user', {
+messageSCheme.virtual('postedBy', {
   ref: 'users',
   localField: 'userId',
   foreignField: '_id',
