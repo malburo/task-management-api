@@ -10,19 +10,14 @@ import Result from './helpers/result.helper';
 import MasterRouter from './routes';
 import http from 'http';
 import socketIo from 'socket.io';
-const server = http.createServer(app);
-
-const io = socketIo(server, {
-  cors: {
-    origin: 'http://localhost:3000',
-  },
-});
 
 require('dotenv').config();
-connectDB();
 
+const server = http.createServer(app);
+const io = socketIo(server, { cors: { origin: process.env.CLIENT_URL } });
 const app = express();
 const port = process.env.PORT || 8000;
+const socketPort = 8001;
 
 app.use(morgan('tiny'));
 app.use(cookieParser());
@@ -32,20 +27,30 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+connectDB();
 configPassportGithub();
 MasterRouter(app);
 
 app.use(function (err, req, res, next) {
-  console.log(err);
-  return Result.error(res, { message: err }, 500);
+  return Result.error(res, { message: err.message }, 500);
 });
 
 app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`);
 });
-
-app.io = io;
-
-server.listen(8001, () => {
-  console.log('listening on *:8001');
+server.listen(socketPort, () => {
+  console.log(`listening on *:${socketPort}`);
 });
+
+const onConnection = (socket) => {
+  app.io = io;
+  app.socket = socket;
+  socket.on('board:join', (boardId) => {
+    socket.join(boardId);
+  });
+  socket.on('board:leave', (boardId) => {
+    socket.leave(boardId);
+  });
+};
+
+io.on('connection', onConnection);
