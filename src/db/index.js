@@ -1,3 +1,4 @@
+import { logger } from 'config/logger.config';
 import mongoose from 'mongoose';
 
 export const connectDB = async () => {
@@ -8,8 +9,8 @@ export const connectDB = async () => {
       useCreateIndex: true,
       useFindAndModify: false,
     });
-    console.log('Mongoose is connected!!!');
+    logger('Success', 'Mongoose is connected!!!');
   } catch (error) {
-    console.log('Connect failure!!!');
+    logger('Error', 'Connect failure!!!');
   }
 };

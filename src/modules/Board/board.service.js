@@ -3,9 +3,10 @@ import Member from 'modules/Member/member.model';
 import { Types } from 'mongoose';
 import Board from './board.model';
 
-const getAll = async ({ page = 1, limit = 5, q = '' }) => {
+const getAll = async ({ page = 1, limit = 8, q = '' }) => {
   try {
     const boards = await Board.aggregate([
+      { $sort: { createdAt: -1 } },
       { $skip: parseInt(page - 1) * parseInt(limit) },
       { $limit: parseInt(limit) },
       { $lookup: { from: 'members', localField: '_id', foreignField: 'boardId', as: 'members' } },
@@ -37,7 +38,7 @@ const getOne = async (boardId) => {
 
 const create = async (data) => {
   try {
-    const newBoard = await Board.create(data).lean();
+    const newBoard = await Board.create(data);
     return newBoard;
   } catch (error) {
     throw error;
@@ -46,12 +47,24 @@ const create = async (data) => {
 
 const update = async (boardId, data) => {
   try {
-    const updatedBoard = await Board.findByIdAndUpdate(boardId, { $set: data }).lean();
+    const updatedBoard = await Board.findByIdAndUpdate(boardId, { $set: data }, { new: true }).lean();
     return updatedBoard;
   } catch (error) {
     throw error;
   }
 };
 
-const boardService = { getAll, getOne, create, update };
+const pushColumnOrder = async (boardId, columnId) => {
+  try {
+    const updatedBoard = await Board.findOneAndUpdate(
+      { _id: boardId },
+      { $push: { columnOrder: columnId } },
+      { new: true }
+    ).lean();
+    return updatedBoard;
+  } catch (error) {
+    throw error;
+  }
+};
+const boardService = { getAll, getOne, create, update, pushColumnOrder };
 export default boardService;
