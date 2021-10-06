@@ -3,10 +3,10 @@ import { model, Schema } from 'mongoose';
 const boardSchema = new Schema(
   {
     title: String,
-    description: String,
+    description: { type: String, default: '' },
     coverUrl: String,
     isPrivate: Boolean,
-    columnOrder: [{ type: Schema.Types.ObjectId, ref: 'columns' }],
+    columnOrder: [{ type: Schema.Types.ObjectId, ref: 'columns', default: [] }],
   },
   {
     toJSON: {
