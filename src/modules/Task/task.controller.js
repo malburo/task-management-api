@@ -1,15 +1,16 @@
 import Result from 'helpers/result.helper';
-import Column from 'modules/Column/column.model';
+import columnService from 'modules/Column/column.service';
 import Task from './task.model';
+import taskService from './task.service';
 
 const create = async (req, res, next) => {
   try {
-    const { content, columnId } = req.body;
-    const newTask = await Task.create({
-      content,
-      columnId,
-    });
-    await Column.findOneAndUpdate({ _id: columnId }, { $push: { taskOrder: newTask._id } });
+    const { io } = req.app;
+    const newTask = await taskService.create(req.body);
+    const updatedColumn = await columnService.pushTaskOrder(req.body.columnId, newTask._id);
+    io.sockets
+      .in(updatedColumn.boardId.toString())
+      .emit('task:create', { newTask, newTaskOrder: updatedColumn.taskOrder });
     Result.success(res, { newTask });
   } catch (error) {
     return next(error);

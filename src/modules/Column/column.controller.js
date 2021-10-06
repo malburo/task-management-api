@@ -1,16 +1,15 @@
 import Result from 'helpers/result.helper';
-import Board from 'modules/Board/board.model';
-import Task from 'modules/Task/task.model';
-import Column from './column.model';
+import boardService from 'modules/Board/board.service';
+import taskService from 'modules/Task/task.service';
+import columnService from './column.service';
 
 const create = async (req, res, next) => {
   try {
-    const { title, boardId } = req.body;
-    const newColumn = await Column.create({
-      title,
-      boardId,
-    });
-    await Board.findOneAndUpdate({ _id: boardId }, { $push: { columnOrder: newColumn._id } });
+    const { io } = req.app;
+    const { boardId } = req.body;
+    const newColumn = await columnService.create(req.body);
+    const updatedBoard = await boardService.pushColumnOrder(boardId, newColumn._id);
+    io.sockets.in(boardId).emit('column:create', { newColumn, newColumnOrder: updatedBoard.columnOrder });
     Result.success(res, { newColumn });
   } catch (error) {
     return next(error);
@@ -20,14 +19,19 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const { columnId } = req.params;
+    const { io } = req.app;
     const updateData = { ...req.body, updateAt: Date.now() };
+    const { taskId } = updateData;
     if (updateData._id) delete updateData._id;
     if (updateData.tasks) delete updateData.tasks;
-    if (updateData.taskId) {
-      await Task.findByIdAndUpdate(updateData.taskId, { $set: { columnId } }).lean();
-      delete updateData.taskId;
+
+    const updatedColumn = await columnService.update(columnId, updateData);
+    io.sockets.in(updatedColumn.boardId.toString()).emit('column:update', updatedColumn);
+
+    if (taskId) {
+      const updatedTask = await taskService.update(taskId, { columnId });
+      io.sockets.in(updatedColumn.boardId.toString()).emit('task:update', updatedTask);
     }
-    const updatedColumn = await Column.findByIdAndUpdate(columnId, { $set: updateData }).lean();
     Result.success(res, { updatedColumn });
   } catch (error) {
     console.log(error);

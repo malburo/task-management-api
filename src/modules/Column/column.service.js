@@ -1,30 +1,35 @@
-const getAll = async () => {
-  try {
-  } catch (error) {
-    throw error;
-  }
-};
-
-const getOne = async (boardId) => {
-  try {
-  } catch (error) {
-    throw error;
-  }
-};
+import Column from './column.model';
 
 const create = async (data) => {
   try {
+    const newColumn = await Column.create(data);
+    return newColumn;
   } catch (error) {
     throw error;
   }
 };
 
-const update = async (boardId, data) => {
+const update = async (columnId, updateData) => {
   try {
+    if (updateData.taskId) delete updateData.taskId;
+    const updatedColumn = await Column.findByIdAndUpdate(columnId, { $set: updateData }, { new: true }).lean();
+    return updatedColumn;
   } catch (error) {
     throw error;
   }
 };
 
-const boardService = { getAll, getOne, create, update };
-export default boardService;
+const pushTaskOrder = async (columnId, taskId) => {
+  try {
+    const updatedColumn = await Column.findOneAndUpdate(
+      { _id: columnId },
+      { $push: { taskOrder: taskId } },
+      { new: true }
+    ).lean();
+    return updatedColumn;
+  } catch (error) {
+    throw error;
+  }
+};
+const columnService = { create, update, pushTaskOrder };
+export default columnService;

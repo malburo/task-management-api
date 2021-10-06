@@ -5,11 +5,11 @@ const taskSchema = new Schema(
     title: String,
     description: String,
     coverUrl: String,
-    deadlineDay: Date,
-    reminderDay: Date,
+    deadlineDay: { type: Date, default: null },
+    reminderDay: { type: Date, default: null },
     columnId: { type: Schema.Types.ObjectId, ref: 'columns' },
-    repicipentsId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
-    labelsId: [{ type: Schema.Types.ObjectId, ref: 'labels' }],
+    repicipentsId: [{ type: Schema.Types.ObjectId, ref: 'users', default: [] }],
+    labelsId: [{ type: Schema.Types.ObjectId, ref: 'labels', default: [] }],
   },
   {
     toJSON: {
