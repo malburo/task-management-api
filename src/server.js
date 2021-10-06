@@ -1,15 +1,16 @@
+import { logger } from 'config/logger.config';
+import { morganAwesome } from 'config/morgan.config';
 import { configPassportGithub } from 'config/passportGithub.config';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import morgan from 'morgan';
+import http from 'http';
 import passport from 'passport';
 import path from 'path';
+import socketIo from 'socket.io';
 import { connectDB } from './db';
 import Result from './helpers/result.helper';
 import MasterRouter from './routes';
-import http from 'http';
-import socketIo from 'socket.io';
 
 require('dotenv').config();
 
@@ -19,7 +20,8 @@ const app = express();
 const port = process.env.PORT || 8000;
 const socketPort = 8001;
 
-app.use(morgan('tiny'));
+app.use(morganAwesome);
+
 app.use(cookieParser());
 app.use(cors({}));
 app.use(passport.initialize());
@@ -36,10 +38,10 @@ app.use(function (err, req, res, next) {
 });
 
 app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`);
+  logger('Success', `App listening at http://localhost:${port}`);
 });
 server.listen(socketPort, () => {
-  console.log(`listening on *:${socketPort}`);
+  logger('Success', `listening on *:${socketPort}`);
 });
 
 const onConnection = (socket) => {
