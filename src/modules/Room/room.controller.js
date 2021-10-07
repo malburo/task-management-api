@@ -116,9 +116,11 @@ const removeMember = async (req, res, next) => {
       return Result.error(res, 'User không tồn tại trong kênh chat');
     }
     generalRoom.userId = generalRoom.userId.filter((item) => item.toString() != userId);
-    await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom);
 
-    const rs = await Room.deleteMany({ isGeneral: false, boardId, userId });
+    const rs = await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom, { new: true });
+
+    await Room.deleteMany({ isGeneral: false, boardId, userId });
+
     Result.success(res, { rs });
   } catch (err) {
     next(err);

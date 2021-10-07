@@ -17,35 +17,28 @@ const getAllInRoom = async (data) => {
 const create = async (data) => {
   try {
     const newMessage = await Message.create(data);
-    return newMessage;
-  } catch (err) {
-    throw err;
-  }
-};
-
-const deleteOne = async (data) => {
-  try {
-    const message = await Message.findById(data);
-    if ((Date.now() - message.createdAt) / (1000 * 3600 * 24) >= 1) throw Error('Không thể xoá');
-    await Message.findByIdAndDelete(message._id).populate('postedBy').lean();
+    const message = await Message.findById(newMessage._id).populate('postedBy').lean();
     return message;
   } catch (err) {
     throw err;
   }
 };
 
+const deleteOne = async (data) => {
+  const message = await Message.findById(data).populate('postedBy').lean();
+  if ((Date.now() - message.createdAt) / (1000 * 3600 * 24) >= 1) throw Error('Không thể xoá');
+  await Message.findByIdAndDelete(message._id);
+  return message;
+};
+
 const updateOne = async (data) => {
-  try {
-    const { msgContent, roomId, messageId } = data;
-    const theLastest = await Message.findOne({ roomId: roomId }).sort({ createdAt: -1 }).lean();
-    if (theLastest && !theLastest._id.equals(messageId)) throw Error('Không thể cập nhật tin nhắn khi đã đọc');
-    const updatedMessage = await Message.findByIdAndUpdate(messageId, { $set: { content: msgContent } }, { new: true })
-      .populate('postedBy')
-      .lean();
-    return updatedMessage;
-  } catch (err) {
-    throw err;
-  }
+  const { msgContent, roomId, messageId } = data;
+  const theLastest = await Message.findOne({ roomId: roomId }).sort({ createdAt: -1 }).lean();
+  if (theLastest && !theLastest._id.equals(messageId)) throw Error('Không thể cập nhật tin nhắn khi đã đọc');
+  const updatedMessage = await Message.findByIdAndUpdate(messageId, { $set: { content: msgContent } }, { new: true })
+    .populate('postedBy')
+    .lean();
+  return updatedMessage;
 };
 
 const messageService = {
