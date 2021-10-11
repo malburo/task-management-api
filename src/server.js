@@ -40,8 +40,8 @@ app.use(function (err, req, res, next) {
 app.listen(port, () => {
   logger('Success', `App listening at http://localhost:${port}`);
 });
-server.listen(socketPort, () => {
-  logger('Success', `listening on *:${socketPort}`);
+server.listen(port, () => {
+  logger('Success', `listening on *:${port}`);
 });
 
 const onConnection = (socket) => {
