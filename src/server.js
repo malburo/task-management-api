@@ -28,6 +28,10 @@ connectDB();
 configPassportGithub();
 MasterRouter(app);
 
+app.get('/', (req, res) => {
+  res.send('Welcome to task management <3');
+});
+
 app.use(function (err, req, res, next) {
   return Result.error(res, { message: err.message }, 500);
 });
