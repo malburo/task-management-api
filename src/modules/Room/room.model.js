@@ -6,6 +6,7 @@ const roomScheme = new Schema(
     userId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
     name: String,
     isGeneral: Boolean,
+    newMessage: Number,
   },
   {
     toJSON: {

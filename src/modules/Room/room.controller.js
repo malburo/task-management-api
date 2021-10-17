@@ -2,6 +2,7 @@ import Result from 'helpers/result.helper';
 import Room from './room.model';
 import roomService from './room.service';
 import User from '../User/user.model';
+import Message from 'modules/Message/message.model';
 
 const getAllYourChannel = async (req, res, next) => {
   try {
@@ -30,17 +31,24 @@ const getAllYourRoomInBoard = async (req, res, next) => {
     const boardId = req.params;
     let rooms = await roomService.getAllRoomInBoard(boardId);
     rooms = rooms.filter((r) => r.userId.some((i) => i.toString() == req.user._id));
-    rooms = rooms.map((i) => {
-      if (i.isGeneral) i.name = i.board.title;
-      else {
-        let data = i.members.filter((m) => m._id.toString() != req.user._id.toString())[0];
-        i.name = data.fullname;
-        i.image = data.profilePictureUrl;
-      }
-      return i;
-    });
+    let message;
+    let data;
+    rooms = await Promise.all(
+      rooms.map(async (i) => {
+        if (i.isGeneral) i.name = i.board.title;
+        else {
+          data = i.members.filter((m) => m._id.toString() != req.user._id.toString())[0];
+          i.name = data.fullname;
+          i.image = data.profilePictureUrl;
+        }
+        message = await Message.find({ roomId: i._id, readBy: { $ne: req.user._id } }).lean();
+        i.newMessage = message.length;
+        return i;
+      })
+    );
     Result.success(res, { rooms });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };

@@ -1,9 +1,12 @@
 import express from 'express';
+import uploadMiddleware from 'middlewares/upload.middleware';
 import messageController from './message.controller';
-const MesssageRouter = express.Router();
+const MessageRouter = express.Router();
 
-MesssageRouter.route('/').post(messageController.create);
-MesssageRouter.route('/room/:roomId/:seed').get(messageController.getAllInRoom);
-MesssageRouter.route('/:messageId').put(messageController.update).delete(messageController.deleteOne);
+MessageRouter.route('/').post(messageController.create);
+MessageRouter.route('/image/:roomId').post(messageController.postImage);
+MessageRouter.route('/room/:roomId/:seed').get(messageController.getAllInRoom);
+MessageRouter.route('/room/:roomId').patch(messageController.read);
+MessageRouter.route('/:messageId').put(messageController.update).delete(messageController.deleteOne);
 
-export default MesssageRouter;
+export default MessageRouter;

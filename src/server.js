@@ -1,3 +1,4 @@
+import { configCloud } from 'config/cloudinary.config';
 import { logger } from 'config/logger.config';
 import { morganAwesome } from 'config/morgan.config';
 import { configPassportGithub } from 'config/passportGithub.config';
@@ -7,18 +8,18 @@ import express from 'express';
 import http from 'http';
 import passport from 'passport';
 import path from 'path';
-import socketIo from 'socket.io';
+import { Server } from 'socket.io';
 import { connectDB } from './db';
 import Result from './helpers/result.helper';
 import MasterRouter from './routes';
 
 require('dotenv').config();
 
-const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: 'http://localhost:3000' } });
+const httpServer = http.createServer(app);
 const app = express();
 const port = process.env.PORT || 8000;
 const socketPort = 8001;
+configCloud();
 
 app.use(morganAwesome);
 
@@ -38,9 +39,12 @@ app.use(function (err, req, res, next) {
 });
 
 app.listen(port, () => {
-  logger('Success', `App listening at http://localhost:${port}`);
+  logger('Success', `App listening at port ${port}`);
 });
-server.listen(socketPort, () => {
+
+const io = new Server(httpServer, { cors: { origin: process.env.CLIENT_URL } });
+
+httpServer.listen(socketPort, () => {
   logger('Success', `listening on *:${socketPort}`);
 });
 
@@ -52,6 +56,12 @@ const onConnection = (socket) => {
   });
   socket.on('board:leave', (boardId) => {
     socket.leave(boardId);
+  });
+  socket.on('channel:join', async (data) => {
+    socket.join(data.boardId);
+  });
+  socket.on('channel:leave', (data) => {
+    socket.leave(data.boardId);
   });
   socket.on('chat:join', async (data) => {
     socket.join(data.roomId);

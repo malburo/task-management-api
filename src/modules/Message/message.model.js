@@ -4,6 +4,8 @@ const messageSCheme = new Schema(
   {
     roomId: { type: Schema.Types.ObjectId, ref: 'rooms' },
     userId: { type: Schema.Types.ObjectId, ref: 'users' },
+    readBy: [{ type: Schema.Types.ObjectId, ref: 'users' }],
+    type: Number,
     content: String,
   },
   {

@@ -32,13 +32,30 @@ const deleteOne = async (data) => {
 };
 
 const updateOne = async (data) => {
-  const { msgContent, roomId, messageId } = data;
-  const theLastest = await Message.findOne({ roomId: roomId }).sort({ createdAt: -1 }).lean();
-  if (theLastest && !theLastest._id.equals(messageId)) throw Error('Không thể cập nhật tin nhắn khi đã đọc');
-  const updatedMessage = await Message.findByIdAndUpdate(messageId, { $set: { content: msgContent } }, { new: true })
-    .populate('postedBy')
-    .lean();
-  return updatedMessage;
+  try {
+    const { msgContent, messageId } = data;
+    const message = await Message.findOneAndUpdate(
+      { _id: messageId, readBy: { $size: 1 } },
+      { content: msgContent },
+      { new: true }
+    )
+      .populate('postedBy')
+      .lean();
+    return message;
+  } catch {
+    return null;
+  }
+};
+
+const readAllByUser = async (data) => {
+  const { roomId, userId } = data;
+  await Message.updateMany({ roomId: roomId }, { $addToSet: { readBy: userId } }, { new: true, multi: true });
+};
+
+const countUnreadMessage = async (data) => {
+  const { roomId, userId } = data;
+  const counter = await Message.find({ roomId, readBy: { $ne: userId } }).count();
+  return counter;
 };
 
 const messageService = {
@@ -46,6 +63,7 @@ const messageService = {
   create,
   deleteOne,
   updateOne,
+  readAllByUser,
 };
 
 export default messageService;
