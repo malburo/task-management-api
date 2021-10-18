@@ -2,8 +2,8 @@ import Result from 'helpers/result.helper';
 import Room from '../Room/room.model';
 import io from '../../server';
 import messageService from './message.service';
-import upload from 'config/multer.config';
 import { uploadCloud } from 'config/cloudinary.config';
+import fs from 'fs';
 
 const getAllInRoom = async (req, res, next) => {
   try {
@@ -77,20 +77,19 @@ const read = async (req, res, next) => {
 const postImage = async (req, res, next) => {
   try {
     const { roomId } = req.params;
-    upload(req, res, async function (err) {
-      const data = await uploadCloud(req.file.path, '/message_image');
-      const message = await messageService.create({
-        roomId,
-        content: data.url,
-        userId: req.user._id,
-        readBy: [req.user._id],
-        type: 2,
-      });
-      io.sockets.in(message.roomId.toString()).emit('chat:add-message', { message });
-      const room = await Room.findById(roomId).lean();
-      io.sockets.in(room.boardId.toString()).emit('channel:new-message', { message: 'new comming' });
-      return Result.success(res, { message });
+    const data = await uploadCloud(req.file.path, '/message_image');
+    fs.unlinkSync(req.file.path);
+    const message = await messageService.create({
+      roomId,
+      content: data.url,
+      userId: req.user._id,
+      readBy: [req.user._id],
+      type: 2,
     });
+    io.sockets.in(message.roomId.toString()).emit('chat:add-message', { message });
+    const room = await Room.findById(roomId).lean();
+    io.sockets.in(room.boardId.toString()).emit('channel:new-message', { message: 'new comming' });
+    return Result.success(res, { message });
   } catch (err) {
     next(err);
   }

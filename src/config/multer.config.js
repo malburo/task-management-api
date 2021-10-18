@@ -21,6 +21,6 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-}).single('file');
+});
 
 export default upload;
