@@ -5,15 +5,24 @@ import messageService from './message.service';
 import { uploadCloud } from 'config/cloudinary.config';
 import fs from 'fs';
 
+// function sleep(milliseconds) {
+//   const date = Date.now();
+//   let currentDate = null;
+//   do {
+//     currentDate = Date.now();
+//   } while (currentDate - date < milliseconds);
+// }
+
 const getAllInRoom = async (req, res, next) => {
   try {
     const { roomId, seed } = req.params;
-    const limit = 20 * (seed + 1);
+    const limit = 20 * (parseInt(seed) + 1);
     const skip = 20 * seed;
     const messages = await messageService.getAllInRoom({ roomId, limit, skip });
     await messageService.readAllByUser({ roomId, userId: req.user._id });
     Result.success(res, { messages });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -26,7 +35,6 @@ const update = async (req, res, next) => {
     if (updatedMessage == null)
       return Result.error(res, { message: 'this message cannot be edit because someone has already read it' });
     await messageService.readAllByUser({ roomId: updatedMessage.roomId, userId: req.user._id });
-    console.log(updatedMessage);
     io.sockets.in(updatedMessage.roomId.toString()).emit('chat:edit-message', { message: updatedMessage });
     return Result.success(res, { updatedMessage });
   } catch (err) {

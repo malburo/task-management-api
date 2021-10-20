@@ -2,12 +2,8 @@ import Message from './message.model';
 
 const getAllInRoom = async (data) => {
   try {
-    const messages = await Message.find({ roomId: data.roomId })
-      .sort({ createdAt: -1 })
-      .skip(data.skip)
-      .limit(data.limit)
-      .populate('postedBy')
-      .lean();
+    let messages = await Message.find({ roomId: data.roomId }).sort({ createdAt: -1 }).populate('postedBy').lean();
+    messages = messages.slice(data.skip, data.limit);
     return messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
   } catch (err) {
     throw err;
