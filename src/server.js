@@ -1,6 +1,7 @@
 import { configCloud } from 'config/cloudinary.config';
 import { logger } from 'config/logger.config';
 import { morganAwesome } from 'config/morgan.config';
+import upload from 'config/multer.config';
 import { configPassportGithub } from 'config/passportGithub.config';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -29,6 +30,7 @@ app.use(passport.initialize());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(upload.single('file'));
 
 connectDB();
 configPassportGithub();
