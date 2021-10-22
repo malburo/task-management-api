@@ -16,6 +16,13 @@ const update = async (taskId, updateData) => {
     throw error;
   }
 };
-
-const taskService = { create, update };
+const deleteByColumnId = async (columnId) => {
+  try {
+    const deletedTasks = await Task.deleteMany({ columnId });
+    return deletedTasks;
+  } catch (error) {
+    throw error;
+  }
+};
+const taskService = { create, update, deleteByColumnId };
 export default taskService;
