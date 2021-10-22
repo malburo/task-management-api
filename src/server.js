@@ -10,6 +10,7 @@ import { Server } from 'socket.io';
 import { connectDB } from './db';
 import Result from './helpers/result.helper';
 import MasterRouter from './routes';
+import cloudinary from './config/cloudinary.config.js';
 
 require('dotenv').config();
 
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 
 connectDB();
 configPassportGithub();
+cloudinary.config();
 MasterRouter(app);
 
 app.get('/', (req, res) => {
