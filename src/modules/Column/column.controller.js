@@ -38,6 +38,18 @@ const update = async (req, res, next) => {
     return next(error);
   }
 };
+const deleteOne = async (req, res, next) => {
+  try {
+    const { columnId } = req.params;
+    const { io } = req.app;
+    const deletedColumn = await columnService.deleteOne(columnId);
+    const deletedTasksInColumn = await taskService.deleteByColumnId(columnId);
+    io.sockets.in(deletedColumn.boardId.toString()).emit('column:delete', deletedColumn);
+    Result.success(res, { deletedColumn });
+  } catch (error) {
+    return next(error);
+  }
+};
 
-const columnController = { create, update };
+const columnController = { create, update, deleteOne };
 export default columnController;

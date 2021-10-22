@@ -18,6 +18,14 @@ const update = async (columnId, updateData) => {
     throw error;
   }
 };
+const deleteOne = async (columnId, updateData) => {
+  try {
+    const deletedColumn = await Column.findByIdAndDelete(columnId).lean();
+    return deletedColumn;
+  } catch (error) {
+    throw error;
+  }
+};
 
 const pushTaskOrder = async (columnId, taskId) => {
   try {
@@ -31,5 +39,5 @@ const pushTaskOrder = async (columnId, taskId) => {
     throw error;
   }
 };
-const columnService = { create, update, pushTaskOrder };
+const columnService = { create, update, deleteOne, pushTaskOrder };
 export default columnService;
