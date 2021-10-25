@@ -4,14 +4,9 @@ import io from '../../server';
 import messageService from './message.service';
 import { uploadCloud } from 'config/cloudinary.config';
 import fs from 'fs';
-
-// function sleep(milliseconds) {
-//   const date = Date.now();
-//   let currentDate = null;
-//   do {
-//     currentDate = Date.now();
-//   } while (currentDate - date < milliseconds);
-// }
+import Message from './message.model';
+import SelectFormMessage from 'modules/SelectFormMessage/selectFormMessage.model';
+import Option from 'modules/SelectFormMessage/option.model';
 
 const getAllInRoom = async (req, res, next) => {
   try {
@@ -102,6 +97,78 @@ const postImage = async (req, res, next) => {
     next(err);
   }
 };
+
+const createSelectForm = async (req, res, next) => {
+  try {
+    const data = { ...req.body };
+    const { roomId } = req.params;
+    let isAddNew = JSON.parse(data.isAddNew);
+    if ((!data.option || data.option.length == 0) && !isAddNew) return Result.error(res, { message: 'invalid form' });
+    const message = await messageService.createFormMessage({
+      isAddNew,
+      userId: req.user._id,
+      isMultiSelect: data.isMultiSelect,
+      content: data.content,
+      roomId,
+      option: data.option,
+    });
+    io.sockets.in(message.roomId.toString()).emit('chat:add-message', { message });
+    const room = await Room.findById(roomId).lean();
+    io.sockets.in(room.boardId.toString()).emit('channel:new-message', { message: 'new comming' });
+    return Result.success(res, { message });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+const editSelectFormMessage = async (req, res, next) => {
+  try {
+    const data = { ...req.body };
+    const check = await Option.findOne({ _id: data.optionId, userId: req.user._id }).lean();
+    const option = await Option.findById(data.optionId).lean();
+    const form = await SelectFormMessage.findById(option.formId).lean();
+    if (form && !form.isMultiSelect) {
+      await form.optionId.map(async (i) => {
+        await Option.findByIdAndUpdate(i, { $pull: { userId: req.user._id } });
+      });
+    }
+    if (check) await Option.findByIdAndUpdate(data.optionId, { $pull: { userId: req.user._id } });
+    else await Option.findByIdAndUpdate(data.optionId, { $addToSet: { userId: req.user._id } });
+    const message = await Message.findById(form.messageId)
+      .populate('postedBy')
+      .populate({
+        path: 'form',
+        populate: { path: 'options' },
+      })
+      .lean();
+    io.sockets.in(message.roomId.toString()).emit('chat:edit-message', { message });
+    return Result.success(res, { message });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const addNewOption = async (req, res, next) => {
+  try {
+    const data = { ...req.body };
+    const { roomId } = req.params;
+    const option = await Option.create({ text: data.text });
+    await SelectFormMessage.findByIdAndUpdate(data.formId, { $addToSet: { optionId: option._id } }, { new: true });
+    const message = await Message.findById(form.messageId)
+      .populate('postedBy')
+      .populate({
+        path: 'form',
+        populate: { path: 'options' },
+      })
+      .lean();
+    io.sockets.in(roomId.toString()).emit('chat:edit-message', { message });
+    return Result.success(res, { message });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const messageController = {
   getAllInRoom,
   create,
@@ -109,6 +176,9 @@ const messageController = {
   deleteOne,
   read,
   postImage,
+  createSelectForm,
+  editSelectFormMessage,
+  addNewOption,
 };
 
 export default messageController;

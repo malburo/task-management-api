@@ -7,6 +7,7 @@ const messageSCheme = new Schema(
     readBy: [{ type: Schema.Types.ObjectId, ref: 'users' }],
     type: Number,
     content: String,
+    formId: { type: Schema.Types.ObjectId, ref: 'select-form-messages' },
   },
   {
     toJSON: {
@@ -16,6 +17,13 @@ const messageSCheme = new Schema(
     timestamps: true,
   }
 );
+
+messageSCheme.virtual('form', {
+  ref: 'select-form-messages',
+  localField: 'formId',
+  foreignField: '_id',
+  justOne: true,
+});
 
 messageSCheme.virtual('room', {
   ref: 'rooms',
