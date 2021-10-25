@@ -5,12 +5,11 @@ import taskService from './task.service';
 
 const create = async (req, res, next) => {
   try {
+    const { boardId } = req.params;
     const { io } = req.app;
     const newTask = await taskService.create(req.body);
     const updatedColumn = await columnService.pushTaskOrder(req.body.columnId, newTask._id);
-    io.sockets
-      .in(updatedColumn.boardId.toString())
-      .emit('task:create', { newTask, newTaskOrder: updatedColumn.taskOrder });
+    io.sockets.in(boardId).emit('task:create', { newTask, newTaskOrder: updatedColumn.taskOrder });
     Result.success(res, { newTask });
   } catch (error) {
     return next(error);
@@ -19,11 +18,13 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const { taskId } = req.params;
+    const { taskId, boardId } = req.params;
+    const { io } = req.app;
     const updateData = { ...req.body, updateAt: Date.now() };
     if (updateData._id) delete updateData._id;
 
-    const updatedTask = await Task.findByIdAndUpdate(taskId, { $set: updateData }).lean();
+    const updatedTask = await taskService.update(taskId, updateData);
+    io.sockets.in(boardId).emit('task:update', updatedTask);
     Result.success(res, { updatedTask });
   } catch (error) {
     return next(error);

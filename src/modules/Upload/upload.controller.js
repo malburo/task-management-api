@@ -8,7 +8,7 @@ const upload = async (req, res, next) => {
       return Result.error(res, { message: 'File is empty' }, 401);
     }
     const result = await cloudinary.v2.uploader.upload(req.file.path, { resource_type: 'auto' });
-    console.log(result);
+    fs.unlinkSync(req.file.path);
     Result.success(res, { result });
   } catch (error) {
     next(error);

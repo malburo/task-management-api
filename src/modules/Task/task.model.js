@@ -4,7 +4,7 @@ const taskSchema = new Schema(
   {
     title: String,
     description: String,
-    coverUrl: String,
+    coverUrl: { type: String, default: null },
     deadlineDay: { type: Date, default: null },
     reminderDay: { type: Date, default: null },
     columnId: { type: Schema.Types.ObjectId, ref: 'columns' },
