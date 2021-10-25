@@ -5,7 +5,9 @@ import ColumnRouter from 'modules/Column/column.route';
 import MemberRouter from 'modules/Member/member.route';
 import MessageRouter from 'modules/Message/message.route';
 import RoomRouter from 'modules/Room/room.route';
+import SearchRouter from 'modules/Search/search.route';
 import TaskRouter from 'modules/Task/task.route';
+import UploadRouter from 'modules/Upload/upload.route';
 import UserRouter from 'modules/User/user.route';
 
 const MasterRouter = (app) => {
@@ -17,6 +19,8 @@ const MasterRouter = (app) => {
   app.use('/api/users', checkToken, UserRouter);
   app.use('/api/rooms', checkToken, RoomRouter);
   app.use('/api/messages', checkToken, MessageRouter);
+  app.use('/api/search', checkToken, SearchRouter);
+  app.use('/api/uploads', UploadRouter);
 };
 
 export default MasterRouter;

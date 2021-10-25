@@ -4,6 +4,7 @@ import io from '../../server';
 import messageService from './message.service';
 import { uploadCloud } from 'config/cloudinary.config';
 import fs from 'fs';
+import cloudinary from 'cloudinary';
 import Message from './message.model';
 import SelectFormMessage from 'modules/SelectFormMessage/selectFormMessage.model';
 import Option from 'modules/SelectFormMessage/option.model';
@@ -80,11 +81,14 @@ const read = async (req, res, next) => {
 const postImage = async (req, res, next) => {
   try {
     const { roomId } = req.params;
-    const data = await uploadCloud(req.file.path, '/message_image');
+    const data = await cloudinary.v2.uploader.upload(req.file.path, {
+      folder: '/message_image',
+      resources_type: 'auto',
+    });
     fs.unlinkSync(req.file.path);
     const message = await messageService.create({
       roomId,
-      content: data.url,
+      content: data.secure_url,
       userId: req.user._id,
       readBy: [req.user._id],
       type: 2,

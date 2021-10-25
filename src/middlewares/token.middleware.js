@@ -10,7 +10,7 @@ const checkToken = async (req, res, next) => {
     }
     token = token.split(' ')[1];
     const decode = await jwt.verify(token, process.env.SECRET);
-    const user = await User.findById(decode.id);
+    const user = await User.findById(decode.id).select('+password');
     req.user = user;
     next();
   } catch (error) {

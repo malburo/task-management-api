@@ -64,7 +64,7 @@ const loginWithGithub = async (req, res, next) => {
     const { email, login, avatar_url } = req.federatedUser._json;
     const checkUser = await User.find({ email });
     if (checkUser.length) {
-      const access_token = createAccessToken(checkUser);
+      const access_token = createAccessToken(checkUser[0]);
       res.redirect(process.env.CLIENT_URL + `/auth/oauth/${access_token}`);
       return;
     }
