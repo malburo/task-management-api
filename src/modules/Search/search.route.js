@@ -1,5 +1,5 @@
 import express from 'express';
-import searchController from './Search.controller';
+import searchController from './search.controller';
 const SearchRouter = express.Router();
 
 SearchRouter.route('/users').get(searchController.searchUser);
