@@ -2,12 +2,12 @@ import Result from 'helpers/result.helper';
 import Room from '../Room/room.model';
 import io from '../../server';
 import messageService from './message.service';
-import { uploadCloud } from 'config/cloudinary.config';
 import fs from 'fs';
 import cloudinary from 'cloudinary';
 import Message from './message.model';
 import SelectFormMessage from 'modules/SelectFormMessage/selectFormMessage.model';
 import Option from 'modules/SelectFormMessage/option.model';
+import SelectFormMessageRouter from 'modules/SelectFormMessage/selectFormMessage.route';
 
 const getAllInRoom = async (req, res, next) => {
   try {
@@ -102,7 +102,7 @@ const postImage = async (req, res, next) => {
   }
 };
 
-const createSelectForm = async (req, res, next) => {
+const createSelectFormMessage = async (req, res, next) => {
   try {
     const data = { ...req.body };
     const { roomId } = req.params;
@@ -153,12 +153,18 @@ const editSelectFormMessage = async (req, res, next) => {
   }
 };
 
-const addNewOption = async (req, res, next) => {
+const addNewOptionToMessage = async (req, res, next) => {
   try {
     const data = { ...req.body };
     const { roomId } = req.params;
-    const option = await Option.create({ text: data.text });
-    await SelectFormMessage.findByIdAndUpdate(data.formId, { $addToSet: { optionId: option._id } }, { new: true });
+    const check = await Option.findOne({ text: data.text, formId: data.formId }).lean();
+    if (check != null) return Result.error(res, { message: 'Item already exist' });
+    const option = await Option.create({ text: data.text, formId: data.formId });
+    const form = await SelectFormMessage.findByIdAndUpdate(
+      data.formId,
+      { $addToSet: { optionId: option._id } },
+      { new: true }
+    );
     const message = await Message.findById(form.messageId)
       .populate('postedBy')
       .populate({
@@ -169,6 +175,7 @@ const addNewOption = async (req, res, next) => {
     io.sockets.in(roomId.toString()).emit('chat:edit-message', { message });
     return Result.success(res, { message });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
@@ -180,9 +187,9 @@ const messageController = {
   deleteOne,
   read,
   postImage,
-  createSelectForm,
+  createSelectFormMessage,
   editSelectFormMessage,
-  addNewOption,
+  addNewOptionToMessage,
 };
 
 export default messageController;

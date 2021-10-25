@@ -90,26 +90,27 @@ const createFormMessage = async (data) => {
     });
     await Message.findByIdAndUpdate(message._id, { formId: form._id });
     let option;
-    await data.option?.map((i) => {
-      (async () => {
-        option = await Option.create({
-          formId: form._id,
-          userId: [],
-          text: i,
-          value: 0,
-        });
-        await SelectFormMessage.findByIdAndUpdate(form._id, { $push: { optionId: option._id } });
-      })();
+    data.option?.map(async (i) => {
+      option = await Option.create({
+        formId: form._id,
+        userId: [],
+        text: i,
+        value: 0,
+      });
+      await SelectFormMessage.findByIdAndUpdate(form._id, { $push: { optionId: option._id } });
     });
     const finalMessage = await Message.findById(message._id)
       .populate('postedBy')
       .populate({
         path: 'form',
-        populate: { path: 'options', pupulate: { path: 'selectedBy' } },
+        populate: { path: 'options' },
       })
       .lean();
+    const finalForm = await SelectFormMessage.findById(finalMessage.formId).populate('options').lean();
+    finalMessage.form = finalForm;
     return finalMessage;
   } catch (err) {
+    console.log(err);
     return null;
   }
 };
