@@ -8,7 +8,7 @@ export const loginSchema = {
 };
 
 export const registerSchema = {
-  body: {
+  body: Joi.object().keys({
     fullname: Joi.string().required().min(2).max(35),
     username: Joi.string().required().min(6).max(35),
     email: Joi.string()
@@ -18,5 +18,5 @@ export const registerSchema = {
       .max(35)
       .messages({ 'string.pattern.base': 'please enter a valid email address' }),
     password: Joi.string().required().min(6).max(35),
-  },
+  }),
 };

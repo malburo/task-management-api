@@ -31,5 +31,33 @@ const update = async (req, res, next) => {
   }
 };
 
-const taskController = { create, update };
+const addNewLabelToTask = async (req, res, next) => {
+  try {
+    const { boardId } = req.params;
+    const { labelId } = req.body;
+    const { io } = req.app;
+
+    const updatedTask = await taskService.pushLabel(taskId, labelId);
+    io.sockets.in(boardId).emit('task:update', updatedTask);
+    Result.success(res, { newLabel });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const pullLabelInTask = async (req, res, next) => {
+  try {
+    const { boardId } = req.params;
+    const { labelId } = req.body;
+    const { io } = req.app;
+
+    const updatedTask = await taskService.removeLabel(taskId, labelId);
+    io.sockets.in(boardId).emit('task:update', updatedTask);
+    Result.success(res, { newLabel });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const taskController = { create, update, addNewLabelToTask, pullLabelInTask };
 export default taskController;

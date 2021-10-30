@@ -19,7 +19,7 @@ const create = async (req, res, next) => {
     const { io } = req.app;
     const checkExist = await Member.find({ userId, boardId });
     if (checkExist.length > 0) {
-      return Result.error(res, 'User này đã là thành viên trong board');
+      return Result.error(res, 'This member has been added');
     }
     const data = { userId, boardId, role: 'MEMBER' };
     const newMemberRecord = await memberService.create(data);

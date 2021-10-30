@@ -24,5 +24,32 @@ const deleteByColumnId = async (columnId) => {
     throw error;
   }
 };
-const taskService = { create, update, deleteByColumnId };
+
+const pushLabel = async (taskId, labelId) => {
+  try {
+    const updatedLabel = await Task.findOneAndUpdate(
+      { _id: taskId },
+      { $push: { labelsId: labelId } },
+      { new: true }
+    ).lean();
+    return updatedLabel;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const pullLabel = async (taskId, labelId) => {
+  try {
+    const updatedLabel = await Task.findOneAndUpdate(
+      { _id: taskId },
+      { $push: { labelsId: labelId } },
+      { new: true }
+    ).lean();
+    return updatedLabel;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const taskService = { create, update, deleteByColumnId, pushLabel, pullLabel };
 export default taskService;
