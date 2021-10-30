@@ -7,7 +7,6 @@ import cloudinary from 'cloudinary';
 import Message from './message.model';
 import SelectFormMessage from 'modules/SelectFormMessage/selectFormMessage.model';
 import Option from 'modules/SelectFormMessage/option.model';
-import SelectFormMessageRouter from 'modules/SelectFormMessage/selectFormMessage.route';
 
 const getAllInRoom = async (req, res, next) => {
   try {
@@ -28,8 +27,7 @@ const update = async (req, res, next) => {
     const { messageId } = req.params;
     const { msgContent } = req.body.data;
     const updatedMessage = await messageService.updateOne({ messageId, msgContent });
-    if (updatedMessage == null)
-      return Result.error(res, { message: 'this message cannot be edit because someone has already read it' });
+    if (updatedMessage == null) return Result.error(res, { message: `Someone already read this, can't be edited` });
     await messageService.readAllByUser({ roomId: updatedMessage.roomId, userId: req.user._id });
     io.sockets.in(updatedMessage.roomId.toString()).emit('chat:edit-message', { message: updatedMessage });
     return Result.success(res, { updatedMessage });
@@ -64,6 +62,7 @@ const create = async (req, res, next) => {
     io.sockets.in(room.boardId.toString()).emit('channel:new-message', { message: 'new comming' });
     return Result.success(res, { message });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };

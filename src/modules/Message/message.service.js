@@ -37,7 +37,7 @@ const deleteOne = async (data) => {
       populate: { path: 'options' },
     })
     .lean();
-  if ((Date.now() - message.createdAt) / (1000 * 3600 * 24) >= 1) throw Error('Không thể xoá');
+  if ((Date.now() - message.createdAt) / (1000 * 3600 * 24) >= 1) throw Error("Can't delete messages after a day");
   await Message.findByIdAndDelete(message._id);
   if (message.type === 3) {
     await Option.deleteMany({ formId: message.formId });
