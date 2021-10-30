@@ -5,7 +5,7 @@ const storage = multer.diskStorage({
     cb(null, './src/public/uploads/');
   },
   filename: function (req, file, cb) {
-    cb(null, new Date().toISOString() + '-' + file.originalname);
+    cb(null, `${new Date().toISOString().replace(/:/g, '-')}-${file.originalname}`);
   },
 });
 
@@ -22,3 +22,5 @@ export const upload = multer({
   storage: storage,
   // fileFilter: fileFilter,
 });
+
+export default upload;
