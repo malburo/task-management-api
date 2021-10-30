@@ -5,6 +5,8 @@ import BoardRouter from 'modules/Board/board.route';
 import ColumnRouter from 'modules/Column/column.route';
 import LabelRouter from 'modules/Label/label.route';
 import MemberRouter from 'modules/Member/member.route';
+import MessageRouter from 'modules/Message/message.route';
+import RoomRouter from 'modules/Room/room.route';
 import SearchRouter from 'modules/Search/search.route';
 import TaskRouter from 'modules/Task/task.route';
 import UploadRouter from 'modules/Upload/upload.route';
@@ -19,6 +21,8 @@ const MasterRouter = (app) => {
   app.use('/api/columns', checkToken, ColumnRouter);
   app.use('/api/members', checkToken, MemberRouter);
   app.use('/api/users', checkToken, UserRouter);
+  app.use('/api/rooms', checkToken, RoomRouter);
+  app.use('/api/messages', checkToken, MessageRouter);
   app.use('/api/search', checkToken, SearchRouter);
   app.use('/api/uploads', UploadRouter);
   app.use((req, res, next) => Result.error(res, { message: 'API Not Found' }, 404));
