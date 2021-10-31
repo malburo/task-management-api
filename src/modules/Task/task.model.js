@@ -8,7 +8,7 @@ const taskSchema = new Schema(
     deadlineDay: { type: Date, default: null },
     reminderDay: { type: Date, default: null },
     columnId: { type: Schema.Types.ObjectId, ref: 'columns' },
-    repicipentsId: [{ type: Schema.Types.ObjectId, ref: 'users', default: [] }],
+    membersId: [{ type: Schema.Types.ObjectId, ref: 'users', default: [] }],
     labelsId: [{ type: Schema.Types.ObjectId, ref: 'labels', default: [] }],
   },
   {

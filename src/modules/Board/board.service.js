@@ -1,4 +1,5 @@
 import Column from 'modules/Column/column.model';
+import Label from 'modules/Label/label.model';
 import Member from 'modules/Member/member.model';
 import { Types } from 'mongoose';
 import Board from './board.model';
@@ -9,6 +10,7 @@ const getAll = async ({ page = 1, limit = 8, q = '' }) => {
       { $sort: { createdAt: -1 } },
       { $skip: parseInt(page - 1) * parseInt(limit) },
       { $limit: parseInt(limit) },
+
       { $lookup: { from: 'members', localField: '_id', foreignField: 'boardId', as: 'members' } },
       { $lookup: { from: 'users', localField: 'members.userId', foreignField: '_id', as: 'members.data' } },
       { $addFields: { members: '$members.data' } },
@@ -30,7 +32,8 @@ const getOne = async (boardId) => {
       { $unwind: '$data' },
       { $replaceRoot: { newRoot: '$data' } },
     ]);
-    return { board, columns, members };
+    const labels = await Label.find({ boardId }).lean();
+    return { board, columns, members, labels };
   } catch (error) {
     throw error;
   }

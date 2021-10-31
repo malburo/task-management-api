@@ -51,5 +51,31 @@ const pullLabel = async (taskId, labelId) => {
   }
 };
 
-const taskService = { create, update, deleteByColumnId, pushLabel, pullLabel };
+const pushMember = async (taskId, memberId) => {
+  try {
+    const updatedLabel = await Task.findOneAndUpdate(
+      { _id: taskId },
+      { $push: { membersId: memberId } },
+      { new: true }
+    ).lean();
+    return updatedLabel;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const pullMember = async (taskId, memberId) => {
+  try {
+    const updatedLabel = await Task.findOneAndUpdate(
+      { _id: taskId },
+      { $push: { membersId: memberId } },
+      { new: true }
+    ).lean();
+    return updatedLabel;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const taskService = { create, update, deleteByColumnId, pushLabel, pullLabel, pushMember, pullMember };
 export default taskService;
