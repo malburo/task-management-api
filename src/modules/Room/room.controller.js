@@ -1,7 +1,6 @@
 import Result from 'helpers/result.helper';
 import Room from './room.model';
 import roomService from './room.service';
-import User from '../User/user.model';
 import Message from 'modules/Message/message.model';
 
 const getAllYourChannel = async (req, res, next) => {
@@ -117,27 +116,7 @@ const addMember = async (req, res, next) => {
   try {
     const { boardId } = req.params;
     const { userId } = req.body;
-    const generalRoom = await Room.findOne({ boardId, isGeneral: true }).lean();
-    if (generalRoom == null) {
-      return Result.error(res, 'Kênh không tồn tại');
-    }
-    const newMember = await User.findById(userId);
-    if (newMember == null) {
-      return Result.error(res, 'User không tồn tại');
-    }
-    if (generalRoom.userId.some((i) => i.toString() == userId)) {
-      return Result.error(res, 'User đã tồn tại trong kênh chat');
-    }
-
-    generalRoom.userId.forEach((i) => {
-      let data = { boardId, userId: [newMember._id, i], isGeneral: false };
-      roomService.create(data);
-    });
-
-    generalRoom.userId.push(userId);
-
-    let room = await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom, { new: true });
-
+    const room = await roomService.addMember({ boardId, userId });
     Result.success(res, room);
   } catch (err) {
     next(err);
@@ -148,23 +127,7 @@ const removeMember = async (req, res, next) => {
   try {
     const { boardId } = req.params;
     const { userId } = req.body;
-    const generalRoom = await Room.findOne({ boardId, isGeneral: true }).lean();
-    if (generalRoom == null) {
-      return Result.error(res, 'Kênh không tồn tại');
-    }
-    const newMember = await User.findById(userId);
-    if (newMember == null) {
-      return Result.error(res, 'User không tồn tại');
-    }
-    if (!generalRoom.userId.some((i) => i.toString() == userId)) {
-      return Result.error(res, 'User không tồn tại trong kênh chat');
-    }
-    generalRoom.userId = generalRoom.userId.filter((item) => item.toString() != userId);
-
-    const room = await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom, { new: true });
-
-    await Room.deleteMany({ isGeneral: false, boardId, userId });
-
+    const room = await roomService.removeMember({ boardId, userId });
     Result.success(res, { room });
   } catch (err) {
     next(err);
