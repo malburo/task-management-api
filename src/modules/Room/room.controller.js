@@ -14,13 +14,49 @@ const getAllYourChannel = async (req, res, next) => {
   }
 };
 
-const searchChannel = async (req, res, next) => {
+const getGeneralRoomInBoard = async (req, res, next) => {
+  try {
+    const { boardId } = req.params;
+    let room = await Room.findOne({ boardId, isGeneral: true }).populate('board').lean();
+    Result.success(res, { room });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getUserRoomInBoard = async (req, res, next) => {
+  try {
+    const { boardId, userId } = req.params;
+    const room = await Room.findOne({ boardId, isGeneral: false, userId: [req.user._id, userId] }).lean();
+    Result.success(res, { room });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const searchRoom = async (req, res, next) => {
   try {
     const { term } = req.query;
-    const generalRooms = await Room.find({ isGeneral: true, userId: req.user._id }).populate('board').lean();
-    const allChannels = generalRooms.map((i) => i.board);
-    const channels = allChannels.filter((i) => i.title.match(new RegExp(term, 'i')));
-    Result.success(res, { channels });
+    const { boardId } = req.params;
+    let rooms = await roomService.getAllRoomInBoard({ boardId });
+    rooms = rooms.filter((r) => r.userId.some((i) => i.toString() == req.user._id));
+    let message;
+    let data;
+    rooms = await Promise.all(
+      rooms.map(async (i) => {
+        if (i.isGeneral) i.name = i.board.title;
+        else {
+          data = i.members.filter((m) => m._id.toString() != req.user._id.toString())[0];
+          i.name = data.fullname;
+          i.image = data.profilePictureUrl;
+        }
+        message = await Message.find({ roomId: i._id, readBy: { $ne: req.user._id } }).lean();
+        i.newMessage = message.length;
+        return i;
+      })
+    );
+    const searchRooms = rooms.filter((i) => i.name.match(new RegExp(term, 'i')));
+    Result.success(res, { room: searchRooms });
   } catch (err) {
     next(err);
   }
@@ -100,9 +136,9 @@ const addMember = async (req, res, next) => {
 
     generalRoom.userId.push(userId);
 
-    let updatedRoom = await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom, { new: true });
+    let room = await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom, { new: true });
 
-    Result.success(res, updatedRoom);
+    Result.success(res, room);
   } catch (err) {
     next(err);
   }
@@ -125,11 +161,11 @@ const removeMember = async (req, res, next) => {
     }
     generalRoom.userId = generalRoom.userId.filter((item) => item.toString() != userId);
 
-    const rs = await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom, { new: true });
+    const room = await Room.findOneAndUpdate({ _id: generalRoom._id }, generalRoom, { new: true });
 
     await Room.deleteMany({ isGeneral: false, boardId, userId });
 
-    Result.success(res, { rs });
+    Result.success(res, { room });
   } catch (err) {
     next(err);
   }
@@ -142,7 +178,9 @@ const roomController = {
   create,
   addMember,
   removeMember,
-  searchChannel,
+  getUserRoomInBoard,
+  getGeneralRoomInBoard,
+  searchRoom,
 };
 
 export default roomController;
