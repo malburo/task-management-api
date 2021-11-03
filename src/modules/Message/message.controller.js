@@ -59,7 +59,7 @@ const create = async (req, res, next) => {
     });
     io.sockets.in(message.roomId.toString()).emit('chat:add-message', { message });
     const room = await Room.findById(roomId).lean();
-    io.sockets.in(room.boardId.toString()).emit('channel:new-message', { message: 'new comming' });
+    io.sockets.in(room.boardId.toString()).emit('board:new-message', { message: 'new comming' });
     return Result.success(res, { message });
   } catch (err) {
     console.log(err);
@@ -94,7 +94,7 @@ const postImage = async (req, res, next) => {
     });
     io.sockets.in(message.roomId.toString()).emit('chat:add-message', { message });
     const room = await Room.findById(roomId).lean();
-    io.sockets.in(room.boardId.toString()).emit('channel:new-message', { message: 'new comming' });
+    io.sockets.in(room.boardId.toString()).emit('board:new-message', { message: 'new comming' });
     return Result.success(res, { message });
   } catch (err) {
     next(err);
@@ -117,7 +117,7 @@ const createSelectFormMessage = async (req, res, next) => {
     });
     io.sockets.in(message.roomId.toString()).emit('chat:add-message', { message });
     const room = await Room.findById(roomId).lean();
-    io.sockets.in(room.boardId.toString()).emit('channel:new-message', { message: 'new comming' });
+    io.sockets.in(room.boardId.toString()).emit('board:new-message', { message: 'new comming' });
     return Result.success(res, { message });
   } catch (err) {
     console.log(err);
