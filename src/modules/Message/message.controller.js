@@ -25,8 +25,8 @@ const getAllInRoom = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const { messageId } = req.params;
-    const { msgContent } = req.body.data;
-    const updatedMessage = await messageService.updateOne({ messageId, msgContent });
+    const { content } = req.body;
+    const updatedMessage = await messageService.updateOne({ messageId, msgContent: content });
     if (updatedMessage == null) return Result.error(res, { message: `Someone already read this, can't be edited` });
     await messageService.readAllByUser({ roomId: updatedMessage.roomId, userId: req.user._id });
     io.sockets.in(updatedMessage.roomId.toString()).emit('chat:edit-message', { message: updatedMessage });
@@ -49,9 +49,9 @@ const deleteOne = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const { roomId, content } = req.body;
+    const { _id, content } = req.body;
     const message = await messageService.create({
-      roomId,
+      roomId: _id,
       content,
       userId: req.user._id,
       readBy: [req.user._id],

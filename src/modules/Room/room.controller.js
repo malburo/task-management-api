@@ -100,18 +100,6 @@ const getOne = async (req, res, next) => {
   }
 };
 
-const create = async (req, res, next) => {
-  try {
-    const data = { ...req.body };
-    data.userId = [req.user._id];
-    data.isGeneral = true;
-    const newRoom = await roomService.create(data);
-    Result.success(res, { newRoom });
-  } catch (err) {
-    next(err);
-  }
-};
-
 const addMember = async (req, res, next) => {
   try {
     const { boardId } = req.params;
@@ -138,7 +126,6 @@ const roomController = {
   getAllYourChannel,
   getAllYourRoomInBoard,
   getOne,
-  create,
   addMember,
   removeMember,
   getUserRoomInBoard,

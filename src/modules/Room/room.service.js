@@ -80,12 +80,23 @@ const addMember = async (data) => {
     throw err;
   }
 };
+
+const createBaseRoomForBoard = async (data) => {
+  try {
+    const { userId, boardId } = data;
+    const newRoom = await Room.create({ boardId, userId: [userId], isGeneral: true });
+    return newRoom;
+  } catch (err) {
+    throw Error('Failed to create base room');
+  }
+};
 const roomService = {
   getAllRoomInBoard,
   getOne,
   create,
   removeMember,
   addMember,
+  createBaseRoomForBoard,
 };
 
 export default roomService;

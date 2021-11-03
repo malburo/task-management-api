@@ -1,5 +1,6 @@
 import Result from 'helpers/result.helper';
 import memberService from 'modules/Member/member.service';
+import roomService from 'modules/Room/room.service';
 import boardService from './board.service';
 
 const getAll = async (req, res, next) => {
@@ -25,6 +26,7 @@ const create = async (req, res, next) => {
   try {
     const newBoard = await boardService.create(req.body);
     const owner = await memberService.create({ userId: req.user._id, boardId: newBoard._id, role: 'OWNER' });
+    await roomService.createBaseRoomForBoard({ userId: req.user._id, boardId: newBoard._id });
     Result.success(res, { newBoard, owner });
   } catch (error) {
     return next(error);
