@@ -67,12 +67,6 @@ const readAllByUser = async (data) => {
   await Message.updateMany({ roomId: roomId }, { $addToSet: { readBy: userId } }, { new: true, multi: true });
 };
 
-const countUnreadMessage = async (data) => {
-  const { roomId, userId } = data;
-  const counter = await Message.find({ roomId, readBy: { $ne: userId } }).count();
-  return counter;
-};
-
 const createFormMessage = async (data) => {
   try {
     const message = await messageService.create({

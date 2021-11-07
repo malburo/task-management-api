@@ -46,12 +46,6 @@ const onConnection = (socket) => {
   socket.on('board:leave', (boardId) => {
     socket.leave(boardId);
   });
-  socket.on('channel:join', async (data) => {
-    socket.join(data.boardId);
-  });
-  socket.on('channel:leave', (data) => {
-    socket.leave(data.boardId);
-  });
   socket.on('chat:join', async (data) => {
     socket.join(data.roomId);
   });
