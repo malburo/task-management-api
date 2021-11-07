@@ -11,6 +11,7 @@ import { Server } from 'socket.io';
 import cloudinary from './config/cloudinary.config.js';
 import { connectDB } from './db';
 import MasterRouter from './routes';
+import compression from 'compression';
 
 require('dotenv').config();
 
@@ -21,6 +22,7 @@ connectDB();
 configPassportGithub();
 cloudinary.config();
 
+app.use(compression({ level: 6 }));
 app.use(morganAwesome);
 app.use(cookieParser());
 app.use(cors({}));
