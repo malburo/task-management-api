@@ -17,6 +17,13 @@ const create = async (data) => {
     throw error;
   }
 };
-
-const labelService = { getAll, create };
+const update = async (labelId, updateData) => {
+  try {
+    const updatedLabel = await Label.findByIdAndUpdate(labelId, { $set: updateData }, { new: true }).lean();
+    return updatedLabel;
+  } catch (error) {
+    throw error;
+  }
+};
+const labelService = { getAll, create, update };
 export default labelService;
