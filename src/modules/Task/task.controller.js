@@ -47,13 +47,13 @@ const pushLabel = async (req, res, next) => {
 
 const pullLabel = async (req, res, next) => {
   try {
-    const { boardId } = req.params;
+    const { boardId, taskId } = req.params;
     const { labelId } = req.body;
     const { io } = req.app;
 
-    const updatedTask = await taskService.removeLabel(taskId, labelId);
+    const updatedTask = await taskService.pullLabel(taskId, labelId);
     io.sockets.in(boardId).emit('task:update', updatedTask);
-    Result.success(res, { newLabel });
+    Result.success(res, { updatedTask });
   } catch (error) {
     return next(error);
   }
