@@ -3,16 +3,6 @@ import Room from './room.model';
 import roomService from './room.service';
 import Message from 'modules/Message/message.model';
 
-const getAllYourChannel = async (req, res, next) => {
-  try {
-    const generalRooms = await Room.find({ isGeneral: true, userId: req.user._id }).populate('board').lean();
-    const channels = generalRooms.map((i) => i.board);
-    Result.success(res, { channels });
-  } catch (err) {
-    next(err);
-  }
-};
-
 const getGeneralRoomInBoard = async (req, res, next) => {
   try {
     const { boardId } = req.params;
@@ -122,7 +112,6 @@ const removeMember = async (req, res, next) => {
 };
 
 const roomController = {
-  getAllYourChannel,
   getAllYourRoomInBoard,
   getOne,
   addMember,

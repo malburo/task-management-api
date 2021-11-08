@@ -68,16 +68,6 @@ const create = async (req, res, next) => {
   }
 };
 
-const read = async (req, res, next) => {
-  try {
-    const { roomId } = req.params;
-    await messageService.readAllByUser({ roomId, userId: req.user._id });
-    return Result.success(res, { message: 'done' });
-  } catch (err) {
-    next(err);
-  }
-};
-
 const postImage = async (req, res, next) => {
   try {
     const { roomId } = req.params;
@@ -185,7 +175,6 @@ const messageController = {
   create,
   update,
   deleteOne,
-  read,
   postImage,
   createSelectFormMessage,
   editSelectFormMessage,
