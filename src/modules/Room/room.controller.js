@@ -83,7 +83,6 @@ const getAllYourRoomInBoard = async (req, res, next) => {
     );
     Result.success(res, { rooms });
   } catch (err) {
-    console.log(err);
     next(err);
   }
 };
