@@ -42,7 +42,7 @@ const pullLabel = async (taskId, labelId) => {
   try {
     const updatedLabel = await Task.findOneAndUpdate(
       { _id: taskId },
-      { $push: { labelsId: labelId } },
+      { $pull: { labelsId: labelId } },
       { new: true }
     ).lean();
     return updatedLabel;
@@ -68,7 +68,7 @@ const pullMember = async (taskId, memberId) => {
   try {
     const updatedLabel = await Task.findOneAndUpdate(
       { _id: taskId },
-      { $push: { membersId: memberId } },
+      { $pull: { membersId: memberId } },
       { new: true }
     ).lean();
     return updatedLabel;
