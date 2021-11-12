@@ -14,6 +14,16 @@ const getAllMemberInBoard = async (req, res, next) => {
   }
 };
 
+const getOne = async (req, res, next) => {
+  try {
+    const data = req.params;
+    const member = await memberService.getOne(data);
+    Result.success(res, { member });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const create = async (req, res, next) => {
   try {
     const { userId, boardId } = req.body;
@@ -33,5 +43,5 @@ const create = async (req, res, next) => {
   }
 };
 
-const memberController = { getAllMemberInBoard, create };
+const memberController = { getAllMemberInBoard, create, getOne };
 export default memberController;
