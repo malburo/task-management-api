@@ -46,6 +46,12 @@ const onConnection = (socket) => {
   socket.on('board:leave', (boardId) => {
     socket.leave(boardId);
   });
+  socket.on('task:join', (taskId) => {
+    socket.join(taskId);
+  });
+  socket.on('task:leave', (taskId) => {
+    socket.leave(taskId);
+  });
   socket.on('chat:join', async (data) => {
     socket.join(data.roomId);
   });
