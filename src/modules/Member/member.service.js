@@ -9,6 +9,17 @@ const getAllMemberInBoard = async (data) => {
   }
 };
 
+const getOne = async (memberId) => {
+  try {
+    console.log({ memberId });
+    const member = await Member.findOne({ userId: memberId }).lean();
+    console.log({ member });
+    return member;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const create = async (data) => {
   try {
     const newMember = await Member.create(data);
@@ -18,5 +29,5 @@ const create = async (data) => {
   }
 };
 
-const memberService = { getAllMemberInBoard, create };
+const memberService = { getAllMemberInBoard, create, getOne };
 export default memberService;
