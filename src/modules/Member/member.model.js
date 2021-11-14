@@ -17,7 +17,7 @@ const MemberSchema = new Schema(
 
 MemberSchema.virtual('member', {
   ref: 'users',
-  localField: 'memberId',
+  localField: 'userId',
   foreignField: '_id',
   justOne: true,
 });

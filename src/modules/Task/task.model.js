@@ -4,6 +4,7 @@ const taskSchema = new Schema(
   {
     title: String,
     description: String,
+    status: { type: String, default: 'NORMAL' },
     coverUrl: { type: String, default: null },
     deadlineDay: { type: Date, default: null },
     reminderDay: { type: Date, default: null },

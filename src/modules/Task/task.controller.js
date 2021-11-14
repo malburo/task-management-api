@@ -1,6 +1,7 @@
 import Result from 'helpers/result.helper';
+import activityService from 'modules/Activity/activity.service';
 import columnService from 'modules/Column/column.service';
-import Task from './task.model';
+import userService from 'modules/User/user.service';
 import taskService from './task.service';
 
 const create = async (req, res, next) => {
@@ -66,7 +67,18 @@ const pushMember = async (req, res, next) => {
     const { io } = req.app;
 
     const updatedTask = await taskService.pushMember(taskId, memberId);
+    const memberInfo = await userService.getOne({ userId: memberId });
+    const newActivity = await activityService.create({
+      content: {
+        sender: { username: req.user.username },
+        receiver: { username: memberInfo.username },
+        task: { _id: taskId, title: updatedTask.title },
+      },
+      type: 'ASSIGN_MEMBER',
+      boardId,
+    });
     io.sockets.in(boardId).emit('task:update', updatedTask);
+    io.sockets.in(boardId).emit('activity:create', newActivity);
     Result.success(res, { updatedTask });
   } catch (error) {
     return next(error);
@@ -81,7 +93,7 @@ const pullMember = async (req, res, next) => {
 
     const updatedTask = await taskService.pullMember(taskId, memberId);
     io.sockets.in(boardId).emit('task:update', updatedTask);
-    Result.success(res, { newLabel });
+    Result.success(res, { updatedTask });
   } catch (error) {
     return next(error);
   }

@@ -3,6 +3,7 @@ import checkToken from 'middlewares/token.middleware';
 import AuthRouter from 'modules/Auth/auth.route';
 import BoardRouter from 'modules/Board/board.route';
 import ColumnRouter from 'modules/Column/column.route';
+import CommentRouter from 'modules/Comment/comment.route';
 import LabelRouter from 'modules/Label/label.route';
 import MemberRouter from 'modules/Member/member.route';
 import MessageRouter from 'modules/Message/message.route';
@@ -23,6 +24,7 @@ const MasterRouter = (app) => {
   app.use('/api/users', checkToken, UserRouter);
   app.use('/api/rooms', checkToken, RoomRouter);
   app.use('/api/messages', checkToken, MessageRouter);
+  app.use('/api/comments', checkToken, CommentRouter);
   app.use('/api/search', checkToken, SearchRouter);
   app.use('/api/uploads', UploadRouter);
   app.use((req, res, next) => Result.error(res, { message: 'API Not Found' }, 404));

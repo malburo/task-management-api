@@ -18,6 +18,7 @@ const getOne = async (req, res, next) => {
   try {
     const data = req.params;
     const member = await memberService.getOne(data);
+    await Member.populate(member, 'member');
     Result.success(res, { member });
   } catch (error) {
     return next(error);
