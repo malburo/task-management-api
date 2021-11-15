@@ -1,6 +1,8 @@
 import Result from 'helpers/result.helper';
+import activityService from 'modules/Activity/activity.service';
 import columnService from 'modules/Column/column.service';
-import Task from './task.model';
+import notificationService from 'modules/Notification/notification.service';
+import userService from 'modules/User/user.service';
 import taskService from './task.service';
 
 const create = async (req, res, next) => {
@@ -24,6 +26,42 @@ const update = async (req, res, next) => {
     if (updateData._id) delete updateData._id;
 
     const updatedTask = await taskService.update(taskId, updateData);
+
+    if (updateData.deadlineDay) {
+      const newActivity = await activityService.create({
+        content: {
+          sender: { username: req.user.username },
+          task: { _id: taskId, title: updatedTask.title },
+          deadlineDay: updatedTask.deadlineDay,
+        },
+        type: 'TASK:ASSIGN_DEADLINE',
+        boardId,
+      });
+      io.sockets.in(boardId).emit('activity:create', newActivity);
+    }
+    if (updateData.status === 'FINISHED') {
+      const newActivity = await activityService.create({
+        content: {
+          sender: { username: req.user.username },
+          task: { _id: taskId, title: updatedTask.title },
+        },
+        type: 'TASK:FINISHED_DEADLINE',
+        boardId,
+      });
+      io.sockets.in(boardId).emit('activity:create', newActivity);
+    }
+    if (updateData.status === 'UNFINISHED' && !updateData.deadlineDay) {
+      const newActivity = await activityService.create({
+        content: {
+          sender: { username: req.user.username },
+          task: { _id: taskId, title: updatedTask.title },
+        },
+        type: 'TASK:UNFINISHED_DEADLINE',
+        boardId,
+      });
+      io.sockets.in(boardId).emit('activity:create', newActivity);
+    }
+
     io.sockets.in(boardId).emit('task:update', updatedTask);
     Result.success(res, { updatedTask });
   } catch (error) {
@@ -66,7 +104,33 @@ const pushMember = async (req, res, next) => {
     const { io } = req.app;
 
     const updatedTask = await taskService.pushMember(taskId, memberId);
+    const memberInfo = await userService.getOne({ userId: memberId });
+    const newActivity = await activityService.create({
+      content: {
+        sender: { username: req.user.username },
+        receiver: { username: memberInfo.username },
+        task: { _id: taskId, title: updatedTask.title },
+      },
+      type: 'TASK:ASSIGN_MEMBER',
+      boardId,
+    });
+
+    if (req.user._id !== memberId) {
+      const newNotification = await notificationService.create({
+        content: {
+          task: { _id: taskId, title: updatedTask.title },
+        },
+        senderId: req.user._id,
+        receiverId: memberId,
+        type: 'TASK:ASSIGN_MEMBER',
+        boardId,
+      });
+      io.sockets.in(memberId).emit('notification:create', newNotification);
+    }
+
     io.sockets.in(boardId).emit('task:update', updatedTask);
+    io.sockets.in(boardId).emit('activity:create', newActivity);
+
     Result.success(res, { updatedTask });
   } catch (error) {
     return next(error);
@@ -80,8 +144,33 @@ const pullMember = async (req, res, next) => {
     const { io } = req.app;
 
     const updatedTask = await taskService.pullMember(taskId, memberId);
+    const memberInfo = await userService.getOne({ userId: memberId });
+    const newActivity = await activityService.create({
+      content: {
+        sender: { username: req.user.username },
+        receiver: { username: memberInfo.username },
+        task: { _id: taskId, title: updatedTask.title },
+      },
+      type: 'TASK:REASSIGN_MEMBER',
+      boardId,
+    });
+
+    if (req.user._id !== memberId) {
+      const newNotification = await notificationService.create({
+        content: {
+          task: { _id: taskId, title: updatedTask.title },
+        },
+        senderId: req.user._id,
+        receiverId: memberId,
+        type: 'TASK:REASSIGN_MEMBER',
+        boardId,
+      });
+      io.sockets.in(memberId).emit('notification:create', newNotification);
+    }
+
+    io.sockets.in(boardId).emit('activity:create', newActivity);
     io.sockets.in(boardId).emit('task:update', updatedTask);
-    Result.success(res, { newLabel });
+    Result.success(res, { updatedTask });
   } catch (error) {
     return next(error);
   }

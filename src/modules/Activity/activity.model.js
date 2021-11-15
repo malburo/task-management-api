@@ -1,13 +1,11 @@
 import { model, Schema } from 'mongoose';
 
-const NotificationSchema = new Schema(
+const ActivitySchema = new Schema(
   {
     content: Schema.Types.Mixed,
     type: String,
-    isRead: { type: Boolean, default: false },
     boardId: { type: Schema.Types.ObjectId, ref: 'boards' },
     senderId: { type: Schema.Types.ObjectId, ref: 'users' },
-    receiverId: { type: Schema.Types.ObjectId, ref: 'users' },
   },
   {
     toJSON: {
@@ -18,6 +16,6 @@ const NotificationSchema = new Schema(
   }
 );
 
-const Notification = model('notifications', NotificationSchema);
+const Activity = model('activities', ActivitySchema);
 
-export default Notification;
+export default Activity;

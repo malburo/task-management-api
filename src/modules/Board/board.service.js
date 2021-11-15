@@ -24,15 +24,19 @@ const getAll = async ({ page = 1, limit = 8, q = '' }) => {
 
 const getOne = async (boardId) => {
   try {
-    const board = await Board.findById(boardId).lean();
-    const columns = await Column.find({ boardId }).populate('tasks').lean();
-    const members = await Member.aggregate([
-      { $match: { boardId: Types.ObjectId(boardId) } },
-      { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'data' } },
-      { $unwind: '$data' },
-      { $replaceRoot: { newRoot: '$data' } },
+    const [board, columns, members, labels] = await Promise.all([
+      Board.findById(boardId).lean(),
+      Column.find({ boardId }).populate('tasks').lean(),
+      Member.aggregate([
+        { $match: { boardId: Types.ObjectId(boardId) } },
+        { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'data' } },
+        { $unwind: '$data' },
+        { $replaceRoot: { newRoot: '$data' } },
+        { $unset: 'password' },
+      ]),
+      Label.find({ boardId }).lean(),
     ]);
-    const labels = await Label.find({ boardId }).lean();
+
     return { board, columns, members, labels };
   } catch (error) {
     throw error;

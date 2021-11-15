@@ -1,8 +1,9 @@
 import Result from 'helpers/result.helper';
-import memberService from './member.service';
-import Member from './member.model';
-import userService from 'modules/User/user.service';
+import activityService from 'modules/Activity/activity.service';
 import roomService from 'modules/Room/room.service';
+import userService from 'modules/User/user.service';
+import Member from './member.model';
+import memberService from './member.service';
 
 const getAllMemberInBoard = async (req, res, next) => {
   try {
@@ -36,6 +37,17 @@ const create = async (req, res, next) => {
     const newMemberRecord = await memberService.create(data);
     const newMember = await userService.getOne({ userId: newMemberRecord.userId });
     await roomService.addMember({ userId: newMemberRecord.userId, boardId: newMemberRecord.boardId });
+
+    const newActivity = await activityService.create({
+      content: {
+        sender: { username: req.user.username },
+        receiver: { _id: newMember._id, username: newMember.username },
+      },
+      type: 'BOARD:ADD_MEMBER',
+      boardId,
+    });
+    io.sockets.in(boardId).emit('activity:create', newActivity);
+
     io.sockets.in(boardId).emit('member:create', newMember);
     Result.success(res, { newMember });
   } catch (error) {
