@@ -11,6 +11,7 @@ import Option from 'modules/SelectFormMessage/option.model';
 const getAllInRoom = async (req, res, next) => {
   try {
     const { roomId, seed } = req.params;
+    if (!seed) seed = 0;
     const limit = 20 * (parseInt(seed) + 1);
     const skip = 20 * seed;
     const messages = await messageService.getAllInRoom({ roomId, limit, skip });
@@ -58,21 +59,11 @@ const create = async (req, res, next) => {
       type: 1,
     });
     io.sockets.in(message.roomId.toString()).emit('chat:add-message', { message });
-    const room = await Room.findById(roomId).lean();
+    const room = await Room.findById(_id).lean();
     io.sockets.in(room.boardId.toString()).emit('board:new-message', { message: 'new comming' });
     return Result.success(res, { message });
   } catch (err) {
     console.log(err);
-    next(err);
-  }
-};
-
-const read = async (req, res, next) => {
-  try {
-    const { roomId } = req.params;
-    await messageService.readAllByUser({ roomId, userId: req.user._id });
-    return Result.success(res, { message: 'done' });
-  } catch (err) {
     next(err);
   }
 };
@@ -184,7 +175,6 @@ const messageController = {
   create,
   update,
   deleteOne,
-  read,
   postImage,
   createSelectFormMessage,
   editSelectFormMessage,

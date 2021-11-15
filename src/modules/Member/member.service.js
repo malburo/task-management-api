@@ -9,15 +9,9 @@ const getAllMemberInBoard = async (data) => {
   }
 };
 
-const getOne = async (memberId) => {
-  try {
-    console.log({ memberId });
-    const member = await Member.findOne({ userId: memberId }).lean();
-    console.log({ member });
-    return member;
-  } catch (error) {
-    throw error;
-  }
+const getOne = async (data) => {
+  const member = await Member.findOne({ boardId: data.boardId, userId: data.userId }).lean();
+  return member;
 };
 
 const create = async (data) => {

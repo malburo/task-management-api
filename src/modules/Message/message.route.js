@@ -10,7 +10,6 @@ MessageRouter.route('/form/select/:roomId/option')
   .post(messageController.addNewOptionToMessage)
   .put(messageController.editSelectFormMessage);
 MessageRouter.route('/room/:roomId/:seed').get(messageController.getAllInRoom);
-MessageRouter.route('/room/:roomId').patch(messageController.read);
 MessageRouter.route('/:messageId').put(messageController.update).delete(messageController.deleteOne);
 
 export default MessageRouter;

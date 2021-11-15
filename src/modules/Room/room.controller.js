@@ -3,16 +3,6 @@ import Room from './room.model';
 import roomService from './room.service';
 import Message from 'modules/Message/message.model';
 
-const getAllYourChannel = async (req, res, next) => {
-  try {
-    const generalRooms = await Room.find({ isGeneral: true, userId: req.user._id }).populate('board').lean();
-    const channels = generalRooms.map((i) => i.board);
-    Result.success(res, { channels });
-  } catch (err) {
-    next(err);
-  }
-};
-
 const getGeneralRoomInBoard = async (req, res, next) => {
   try {
     const { boardId } = req.params;
@@ -43,8 +33,10 @@ const searchRoom = async (req, res, next) => {
     let data;
     rooms = await Promise.all(
       rooms.map(async (i) => {
-        if (i.isGeneral) i.name = i.board.title;
-        else {
+        if (i.isGeneral) {
+          i.name = i.board.title;
+          i.image = i.board.coverId;
+        } else {
           data = i.members.filter((m) => m._id.toString() != req.user._id.toString())[0];
           i.name = data.fullname;
           i.image = data.profilePictureUrl;
@@ -70,8 +62,10 @@ const getAllYourRoomInBoard = async (req, res, next) => {
     let data;
     rooms = await Promise.all(
       rooms.map(async (i) => {
-        if (i.isGeneral) i.name = i.board.title;
-        else {
+        if (i.isGeneral) {
+          i.name = i.board.title;
+          i.image = i.board.coverUrl;
+        } else {
           data = i.members.filter((m) => m._id.toString() != req.user._id.toString())[0];
           i.name = data.fullname;
           i.image = data.profilePictureUrl;
@@ -83,7 +77,6 @@ const getAllYourRoomInBoard = async (req, res, next) => {
     );
     Result.success(res, { rooms });
   } catch (err) {
-    console.log(err);
     next(err);
   }
 };
@@ -123,7 +116,6 @@ const removeMember = async (req, res, next) => {
 };
 
 const roomController = {
-  getAllYourChannel,
   getAllYourRoomInBoard,
   getOne,
   addMember,
