@@ -1,8 +1,8 @@
 import Notification from './notification.model';
 
-const getAll = async ({ page = 1, limit = 5, q = '' }) => {
+const getAll = async ({ page = 1, limit = 5, q = '', userId }) => {
   try {
-    const notifications = await Notification.find({});
+    const notifications = await Notification.find({ receiverId: userId }).populate('senderId').lean();
     const total = await Notification.find({}).countDocuments();
     return { notifications, pagination: { page, limit, total } };
   } catch (error) {
@@ -12,12 +12,12 @@ const getAll = async ({ page = 1, limit = 5, q = '' }) => {
 
 const create = async (data) => {
   try {
-    const newNotification = await Notification.create(data).lean();
+    const newNotification = await Notification.create(data);
     return newNotification;
   } catch (error) {
     throw error;
   }
 };
 
-const boardService = { getAll, create };
-export default boardService;
+const notificationService = { getAll, create };
+export default notificationService;

@@ -1,4 +1,5 @@
 import Result from 'helpers/result.helper';
+import activityService from 'modules/Activity/activity.service';
 import boardService from 'modules/Board/board.service';
 import taskService from 'modules/Task/task.service';
 import columnService from './column.service';
@@ -30,8 +31,19 @@ const update = async (req, res, next) => {
 
     if (taskId) {
       const updatedTask = await taskService.update(taskId, { columnId });
+      const newActivity = await activityService.create({
+        content: {
+          sender: { username: req.user.username },
+          task: { _id: taskId, title: updatedTask.title },
+          column: { _id: columnId, title: updatedColumn.title },
+        },
+        type: 'TASK:DRAG_DROP',
+        boardId: updatedColumn.boardId,
+      });
+      io.sockets.in(updatedColumn.boardId.toString()).emit('activity:create', newActivity);
       io.sockets.in(updatedColumn.boardId.toString()).emit('task:update', updatedTask);
     }
+
     Result.success(res, { updatedColumn });
   } catch (error) {
     console.log(error);

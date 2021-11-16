@@ -1,3 +1,4 @@
+import compression from 'compression';
 import { morganAwesome } from 'config/morgan.config';
 import { configPassportGithub } from 'config/passportGithub.config';
 import cookieParser from 'cookie-parser';
@@ -5,13 +6,13 @@ import cors from 'cors';
 import express from 'express';
 import handleError from 'helpers/handleError.helper.js';
 import { createServer } from 'http';
+import jwt from 'jsonwebtoken';
 import passport from 'passport';
 import path from 'path';
 import { Server } from 'socket.io';
 import cloudinary from './config/cloudinary.config.js';
 import { connectDB } from './db';
 import MasterRouter from './routes';
-import compression from 'compression';
 
 require('dotenv').config();
 
@@ -40,6 +41,14 @@ httpServer.listen(port);
 const onConnection = (socket) => {
   app.io = io;
   app.socket = socket;
+  socket.on('auth:token', async (token) => {
+    try {
+      if (token) {
+        const decode = await jwt.verify(token, process.env.SECRET);
+        if (decode) socket.join(decode.id);
+      }
+    } catch (error) {}
+  });
   socket.on('board:join', (boardId) => {
     socket.join(boardId);
   });

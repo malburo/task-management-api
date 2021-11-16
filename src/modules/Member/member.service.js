@@ -10,12 +10,8 @@ const getAllMemberInBoard = async (data) => {
 };
 
 const getOne = async (data) => {
-  try {
-    const member = await Member.findOne({ userId: data.userId, boardId: data.boardId }).lean();
-    return member;
-  } catch (error) {
-    throw error;
-  }
+  const member = await Member.findOne({ boardId: data.boardId, userId: data.userId }).lean();
+  return member;
 };
 
 const create = async (data) => {

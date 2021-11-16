@@ -7,6 +7,7 @@ import CommentRouter from 'modules/Comment/comment.route';
 import LabelRouter from 'modules/Label/label.route';
 import MemberRouter from 'modules/Member/member.route';
 import MessageRouter from 'modules/Message/message.route';
+import NotificationRouter from 'modules/Notification/notification.route';
 import RoomRouter from 'modules/Room/room.route';
 import SearchRouter from 'modules/Search/search.route';
 import TaskRouter from 'modules/Task/task.route';
@@ -26,6 +27,7 @@ const MasterRouter = (app) => {
   app.use('/api/messages', checkToken, MessageRouter);
   app.use('/api/comments', checkToken, CommentRouter);
   app.use('/api/search', checkToken, SearchRouter);
+  app.use('/api/notifications', checkToken, NotificationRouter);
   app.use('/api/uploads', UploadRouter);
   app.use((req, res, next) => Result.error(res, { message: 'API Not Found' }, 404));
 };
