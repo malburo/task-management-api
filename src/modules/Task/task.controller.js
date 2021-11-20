@@ -22,6 +22,8 @@ const update = async (req, res, next) => {
   try {
     const { taskId, boardId } = req.params;
     const { io } = req.app;
+    const currentUser = req.user;
+    delete currentUser.password;
     const updateData = { ...req.body, updateAt: Date.now() };
     if (updateData._id) delete updateData._id;
 
@@ -30,38 +32,40 @@ const update = async (req, res, next) => {
     if (updateData.deadlineDay) {
       const newActivity = await activityService.create({
         content: {
-          sender: { username: req.user.username },
           task: { _id: taskId, title: updatedTask.title },
           deadlineDay: updatedTask.deadlineDay,
         },
+        senderId: currentUser._id,
         type: 'TASK:ASSIGN_DEADLINE',
         boardId,
       });
+      newActivity.senderId = currentUser;
       io.sockets.in(boardId).emit('activity:create', newActivity);
     }
     if (updateData.status === 'FINISHED') {
       const newActivity = await activityService.create({
         content: {
-          sender: { username: req.user.username },
           task: { _id: taskId, title: updatedTask.title },
         },
+        senderId: currentUser._id,
         type: 'TASK:FINISHED_DEADLINE',
         boardId,
       });
+      newActivity.senderId = currentUser;
       io.sockets.in(boardId).emit('activity:create', newActivity);
     }
     if (updateData.status === 'UNFINISHED' && !updateData.deadlineDay) {
       const newActivity = await activityService.create({
         content: {
-          sender: { username: req.user.username },
           task: { _id: taskId, title: updatedTask.title },
         },
+        senderId: currentUser._id,
         type: 'TASK:UNFINISHED_DEADLINE',
         boardId,
       });
+      newActivity.senderId = currentUser;
       io.sockets.in(boardId).emit('activity:create', newActivity);
     }
-
     io.sockets.in(boardId).emit('task:update', updatedTask);
     Result.success(res, { updatedTask });
   } catch (error) {
@@ -102,29 +106,32 @@ const pushMember = async (req, res, next) => {
     const { boardId, taskId } = req.params;
     const { memberId } = req.body;
     const { io } = req.app;
+    const currentUser = req.user;
+    delete currentUser.password;
 
     const updatedTask = await taskService.pushMember(taskId, memberId);
     const memberInfo = await userService.getOne({ userId: memberId });
     const newActivity = await activityService.create({
       content: {
-        sender: { username: req.user.username },
         receiver: { username: memberInfo.username },
         task: { _id: taskId, title: updatedTask.title },
       },
+      senderId: currentUser._id,
       type: 'TASK:ASSIGN_MEMBER',
       boardId,
     });
-
-    if (req.user._id !== memberId) {
+    newActivity.senderId = currentUser;
+    if (currentUser._id !== memberId) {
       const newNotification = await notificationService.create({
         content: {
           task: { _id: taskId, title: updatedTask.title },
         },
-        senderId: req.user._id,
+        senderId: currentUser._id,
         receiverId: memberId,
         type: 'TASK:ASSIGN_MEMBER',
         boardId,
       });
+      newNotification.senderId = currentUser;
       io.sockets.in(memberId).emit('notification:create', newNotification);
     }
 
@@ -142,29 +149,33 @@ const pullMember = async (req, res, next) => {
     const { boardId, taskId } = req.params;
     const { memberId } = req.body;
     const { io } = req.app;
+    const currentUser = req.user;
+    delete currentUser.password;
 
     const updatedTask = await taskService.pullMember(taskId, memberId);
     const memberInfo = await userService.getOne({ userId: memberId });
     const newActivity = await activityService.create({
       content: {
-        sender: { username: req.user.username },
         receiver: { username: memberInfo.username },
         task: { _id: taskId, title: updatedTask.title },
       },
+      senderId: currentUser._id,
       type: 'TASK:REASSIGN_MEMBER',
       boardId,
     });
+    newActivity.senderId = currentUser;
 
-    if (req.user._id !== memberId) {
+    if (currentUser._id !== memberId) {
       const newNotification = await notificationService.create({
         content: {
           task: { _id: taskId, title: updatedTask.title },
         },
-        senderId: req.user._id,
+        senderId: currentUser._id,
         receiverId: memberId,
         type: 'TASK:REASSIGN_MEMBER',
         boardId,
       });
+      newNotification.senderId = currentUser;
       io.sockets.in(memberId).emit('notification:create', newNotification);
     }
 

@@ -23,6 +23,9 @@ const update = async (req, res, next) => {
     const { io } = req.app;
     const updateData = { ...req.body, updateAt: Date.now() };
     const { taskId } = updateData;
+    const currentUser = req.user;
+    delete currentUser.password;
+
     if (updateData._id) delete updateData._id;
     if (updateData.tasks) delete updateData.tasks;
 
@@ -33,13 +36,14 @@ const update = async (req, res, next) => {
       const updatedTask = await taskService.update(taskId, { columnId });
       const newActivity = await activityService.create({
         content: {
-          sender: { username: req.user.username },
           task: { _id: taskId, title: updatedTask.title },
           column: { _id: columnId, title: updatedColumn.title },
         },
+        senderId: currentUser._id,
         type: 'TASK:DRAG_DROP',
         boardId: updatedColumn.boardId,
       });
+      newActivity.senderId = currentUser;
       io.sockets.in(updatedColumn.boardId.toString()).emit('activity:create', newActivity);
       io.sockets.in(updatedColumn.boardId.toString()).emit('task:update', updatedTask);
     }

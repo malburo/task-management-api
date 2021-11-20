@@ -40,12 +40,13 @@ const create = async (req, res, next) => {
 
     const newActivity = await activityService.create({
       content: {
-        sender: { username: req.user.username },
         receiver: { _id: newMember._id, username: newMember.username },
       },
+      senderId: req.user._id,
       type: 'BOARD:ADD_MEMBER',
       boardId,
     });
+    newActivity.senderId = req.user;
     io.sockets.in(boardId).emit('activity:create', newActivity);
 
     io.sockets.in(boardId).emit('member:create', newMember);

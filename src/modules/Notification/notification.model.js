@@ -7,7 +7,7 @@ const NotificationSchema = new Schema(
     isRead: { type: Boolean, default: false },
     boardId: { type: Schema.Types.ObjectId, ref: 'boards' },
     senderId: { type: Schema.Types.ObjectId, ref: 'users' },
-    receiverId: { type: Schema.Types.ObjectId, ref: 'users' },
+    receiverId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
   },
   {
     toJSON: {

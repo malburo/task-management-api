@@ -1,4 +1,8 @@
 import Result from 'helpers/result.helper';
+import activityService from 'modules/Activity/activity.service';
+import Column from 'modules/Column/column.model';
+import Task from 'modules/Task/task.model';
+import { Types } from 'mongoose';
 import commentService from './comment.service';
 
 const getByTaskId = async (req, res, next) => {
@@ -19,6 +23,18 @@ const create = async (req, res, next) => {
 
     const createdComment = await commentService.create({ content, taskId, userId });
     const newComment = await commentService.getOne(createdComment._id);
+
+    const column = await Column.findOne({ taskOrder: Types.ObjectId(taskId) }).lean();
+    const task = await Task.findById(taskId);
+    const newActivity = await activityService.create({
+      content: { task },
+      senderId: req.user._id,
+      type: 'TASK:ADD_COMMENT',
+      boardId: column.boardId,
+    });
+    newActivity.senderId = req.user;
+    io.sockets.in(column.boardId.toString()).emit('activity:create', newActivity);
+
     io.sockets.in(taskId).emit('comment:create', newComment);
     Result.success(res, { newComment });
   } catch (error) {
