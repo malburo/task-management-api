@@ -13,6 +13,12 @@ import { Server } from 'socket.io';
 import cloudinary from './config/cloudinary.config.js';
 import { connectDB } from './db';
 import MasterRouter from './routes';
+import cron from 'node-cron';
+import Task from 'modules/Task/task.model.js';
+import notificationService from 'modules/Notification/notification.service.js';
+import Column from 'modules/Column/column.model.js';
+import { Types } from 'mongoose';
+import taskService from 'modules/Task/task.service.js';
 
 require('dotenv').config();
 
@@ -70,5 +76,32 @@ const onConnection = (socket) => {
 };
 
 io.on('connection', onConnection);
+
+cron.schedule('*/10 * * * * *', async () => {
+  try {
+    const a = await Task.updateMany({ deadlineDay: { $lte: Date.now() }, status: 'UNFINISHED' }, { status: 'PUSH' });
+    if (a.n === 0) return;
+
+    const tasks = await Task.find({ status: 'PUSH' }).lean();
+    if (!tasks) return;
+    tasks.forEach(async (task) => {
+      const column = await Column.findOne({ taskOrder: Types.ObjectId(task._id) });
+      const newNotification = await notificationService.create({
+        content: {
+          task: { _id: task._id, title: task.title },
+        },
+        receiverId: task.membersId,
+        type: 'TASK:DEADLINE_EXPIRED',
+        boardId: column.boardId,
+      });
+      const updatedTask = await taskService.update(task._id, { status: 'DEADLINE_EXPIRED' });
+
+      io.sockets.in(task.membersId).emit('notification:create', newNotification);
+      io.sockets.in(column.boardId.toString()).emit('task:update', updatedTask);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 export default io;
