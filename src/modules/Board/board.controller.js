@@ -11,6 +11,25 @@ const getAll = async (req, res, next) => {
     return next(error);
   }
 };
+const getMyBoards = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { boards, pagination } = await boardService.getMyBoards(req.query, userId);
+    Result.success(res, { boards, pagination });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getMyBoardsJoined = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { boards, pagination } = await boardService.getMyBoardsJoined(req.query, userId);
+    Result.success(res, { boards, pagination });
+  } catch (error) {
+    return next(error);
+  }
+};
 
 const getOne = async (req, res, next) => {
   try {
@@ -48,5 +67,5 @@ const update = async (req, res, next) => {
   }
 };
 
-const boardController = { getAll, getOne, create, update };
+const boardController = { getAll, getMyBoards, getMyBoardsJoined, getOne, create, update };
 export default boardController;
