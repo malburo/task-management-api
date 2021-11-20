@@ -11,5 +11,15 @@ const getActivityByBoardId = async (req, res, next) => {
   }
 };
 
-const historyController = { getActivityByBoardId };
+const getActivityByMemberId = async (req, res, next) => {
+  try {
+    const { boardId, memberId } = req.params;
+    const activities = await activityService.getActivityByMember(boardId, memberId);
+    Result.success(res, { activities });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const historyController = { getActivityByBoardId, getActivityByMemberId };
 export default historyController;

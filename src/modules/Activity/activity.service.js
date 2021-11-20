@@ -2,7 +2,19 @@ import Activity from './activity.model';
 
 const getActivityByBoardId = async (boardId) => {
   try {
-    const activities = await Activity.find({ boardId });
+    const activities = await Activity.find({ boardId }).sort({ createdAt: -1 }).populate('senderId').lean();
+    return activities;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getActivityByMember = async (boardId, memberId) => {
+  try {
+    const activities = await Activity.find({ boardId, senderId: memberId })
+      .sort({ createdAt: -1 })
+      .populate('senderId')
+      .lean();
     return activities;
   } catch (error) {
     throw error;
@@ -18,5 +30,5 @@ const create = async (data) => {
   }
 };
 
-const activityService = { getActivityByBoardId, create };
+const activityService = { getActivityByBoardId, getActivityByMember, create };
 export default activityService;
