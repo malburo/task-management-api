@@ -1,5 +1,7 @@
 import Result from 'helpers/result.helper';
 import activityService from 'modules/Activity/activity.service';
+import Board from 'modules/Board/board.model';
+import notificationService from 'modules/Notification/notification.service';
 import roomService from 'modules/Room/room.service';
 import userService from 'modules/User/user.service';
 import Member from './member.model';
@@ -49,6 +51,19 @@ const create = async (req, res, next) => {
     });
     newActivity.senderId = req.user;
     io.sockets.in(boardId).emit('activity:create', newActivity);
+
+    const board = await Board.findById(boardId);
+    const newNotification = await notificationService.create({
+      content: {
+        board: { _id: board._id, title: board.title, coverUrl: board.coverUrl },
+      },
+      senderId: req.user._id,
+      type: 'BOARD:ADD_MEMBER',
+      receiverId: newMember._id,
+      boardId,
+    });
+    newNotification.senderId = req.user;
+    io.sockets.in(newMember._id.toString()).emit('notification:create', newNotification);
 
     io.sockets.in(boardId).emit('member:create', newMember);
     Result.success(res, { newMember });
