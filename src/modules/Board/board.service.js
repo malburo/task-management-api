@@ -116,5 +116,28 @@ const pushColumnOrder = async (boardId, columnId) => {
     throw error;
   }
 };
-const boardService = { getAll, getMyBoards, getMyBoardsJoined, getOne, create, update, pushColumnOrder };
+
+const removeColumnOrder = async (boardId, columnId) => {
+  try {
+    const updatedBoard = await Board.findOneAndUpdate(
+      { _id: boardId },
+      { $pull: { columnOrder: columnId } },
+      { new: true }
+    ).lean();
+    return updatedBoard;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const boardService = {
+  getAll,
+  getMyBoards,
+  getMyBoardsJoined,
+  getOne,
+  create,
+  update,
+  pushColumnOrder,
+  removeColumnOrder,
+};
 export default boardService;

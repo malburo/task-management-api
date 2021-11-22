@@ -1,3 +1,4 @@
+import botService from 'modules/Bot/bot.service';
 import User from 'modules/User/user.model';
 import Room from './room.model';
 
@@ -57,19 +58,13 @@ const addMember = async (data) => {
   try {
     const { boardId, userId } = data;
     const generalRoom = await Room.findOne({ boardId, isGeneral: true }).lean();
-    if (generalRoom == null) {
-      throw Error('Room not exist');
-    }
+    if (generalRoom == null) throw Error('Room not exist');
     const newMember = await User.findById(userId);
-    if (newMember == null) {
-      throw Error('User not found');
-    }
-    if (generalRoom.userId.some((i) => i.toString() == userId)) {
-      throw Error('Already exist');
-    }
-
+    if (newMember == null) throw Error('User not found');
+    if (generalRoom.userId.some((i) => i.toString() == userId)) throw Error('Already exist');
+    const bot = await botService.getBot();
     generalRoom.userId.forEach((i) => {
-      let data = { boardId, userId: [newMember._id, i], isGeneral: false };
+      let data = { boardId, userId: [newMember._id, i], isGeneral: false, isBot: i.toString() == bot._id.toString() };
       roomService.create(data);
     });
 
@@ -77,6 +72,7 @@ const addMember = async (data) => {
 
     return room;
   } catch (err) {
+    console.log(err);
     throw err;
   }
 };
@@ -84,7 +80,9 @@ const addMember = async (data) => {
 const createBaseRoomForBoard = async (data) => {
   try {
     const { userId, boardId } = data;
-    const newRoom = await Room.create({ boardId, userId: [userId], isGeneral: true });
+    const bot = await botService.getBot();
+    const newRoom = await Room.create({ boardId, userId: [bot._id], isGeneral: true, isBot: false });
+    await addMember({ boardId, userId });
     return newRoom;
   } catch (err) {
     throw Error('Failed to create base room');
