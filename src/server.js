@@ -77,9 +77,9 @@ const onConnection = (socket) => {
 
 io.on('connection', onConnection);
 
-cron.schedule('*/10 * * * * *', async () => {
+cron.schedule('*/60 * * * * *', async () => {
   try {
-    const a = await Task.updateMany({ deadlineDay: { $lte: Date.now() }, status: 'UNFINISHED' }, { status: 'PUSH' });
+    const a = await Task.updateMany({ deadlineDay: { $lt: Date.now() }, status: 'UNFINISHED' }, { status: 'PUSH' });
     if (a.n === 0) return;
 
     const tasks = await Task.find({ status: 'PUSH' }).lean();
@@ -95,7 +95,6 @@ cron.schedule('*/10 * * * * *', async () => {
         boardId: column.boardId,
       });
       const updatedTask = await taskService.update(task._id, { status: 'DEADLINE_EXPIRED' });
-
       io.sockets.in(task.membersId).emit('notification:create', newNotification);
       io.sockets.in(column.boardId.toString()).emit('task:update', updatedTask);
     });
