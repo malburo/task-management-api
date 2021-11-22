@@ -67,7 +67,6 @@ const createBotMessage = async (data) => {
         break;
       case 'TASK:CREATE':
         const room = await Room.findById(roomId).populate('board').lean();
-        console.log(room.board);
         if (room.board.columnOrder.length === 0)
           response = await messageService.create({
             roomId: roomId,
