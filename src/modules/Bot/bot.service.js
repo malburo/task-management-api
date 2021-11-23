@@ -88,9 +88,9 @@ const createBotMessage = async (data) => {
           });
         else {
           const board = await Board.findById(room.boardId).populate('columns').lean();
-          const textResponse = `${result.fulfillmentText} <br>
-          Type number: <br> 
-          ${board.columns.map((item, index) => index + '. ' + item.title + '<br>')}`;
+          let textResponse = `${result.fulfillmentText} <br>
+          Type number: <br> `;
+          board.columns.map((item, index) => (textResponse += index + '. ' + item.title + '<br>'));
           response = await messageService.create({
             roomId: roomId,
             content: textResponse,

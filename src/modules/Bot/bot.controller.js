@@ -48,7 +48,7 @@ const sendRequest = async (req, res, next) => {
         io.sockets.in(roomId).emit('chat:add-message', { message: botResponse });
         break;
       case 'TASK:COLUMN':
-        const board = await Board.findById(room.boardId).lean();
+        const board = await Board.findById(room.boardId).populate('columns').lean();
         const countColumn = board.columnOrder.length;
         if (Number(content) !== NaN && Number(content) <= countColumn && Number(content) >= 0) {
           botResponse = await messageService.create({
@@ -57,7 +57,7 @@ const sendRequest = async (req, res, next) => {
             userId: bot._id,
             readBy: [userId, bot._id],
             botWaiting: 'TASK:TITLE',
-            botSaveData: board.columnOrder[Number(content)],
+            botSaveData: board.columns[Number(content)]._id,
             type: 1,
           });
         } else {
