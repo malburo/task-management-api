@@ -1,3 +1,4 @@
+import Board from 'modules/Board/board.model';
 import Message from 'modules/Message/message.model';
 import messageService from 'modules/Message/message.service';
 import Room from 'modules/Room/room.model';
@@ -50,6 +51,16 @@ const detectIntent = async (data) => {
   }
 };
 
+const getLastBotWaiting = async (data) => {
+  try {
+    const bot = await getBot();
+    const message = await Message.findOne({ userId: bot._id, roomId: data }).sort({ createdAt: -1 }).lean();
+    return message;
+  } catch (error) {
+    return null;
+  }
+};
+
 const createBotMessage = async (data) => {
   try {
     const { result, roomId, userId, botId } = data;
@@ -62,8 +73,8 @@ const createBotMessage = async (data) => {
           userId: botId,
           readBy: [userId, botId],
           type: 1,
+          botWaiting: 'COLUMN:TITLE',
         });
-        response.type = 4;
         break;
       case 'TASK:CREATE':
         const room = await Room.findById(roomId).populate('board').lean();
@@ -76,14 +87,18 @@ const createBotMessage = async (data) => {
             type: 1,
           });
         else {
+          const board = await Board.findById(room.boardId).populate('columns').lean();
+          const textResponse = `${result.fulfillmentText} <br>
+          Type number: <br> 
+          ${board.columns.map((item, index) => index + '. ' + item.title + '<br>')}`;
           response = await messageService.create({
             roomId: roomId,
-            content: result.fulfillmentText,
+            content: textResponse,
             userId: botId,
             readBy: [userId, botId],
             type: 1,
+            botWaiting: 'TASK:COLUMN',
           });
-          response.type = 5;
         }
         break;
       case 'COLUMN:EDIT':
@@ -108,6 +123,7 @@ const createBotMessage = async (data) => {
     }
     return response;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
@@ -115,6 +131,7 @@ const createBotMessage = async (data) => {
 const botService = {
   getBot,
   detectIntent,
+  getLastBotWaiting,
 };
 
 export default botService;
