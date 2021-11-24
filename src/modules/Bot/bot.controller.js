@@ -33,6 +33,17 @@ const sendRequest = async (req, res, next) => {
     const room = await Room.findById(roomId).lean();
     switch (botMsgWaiting.botWaiting) {
       case 'COLUMN:TITLE':
+        if (content.length < 2 || content.length > 30) {
+          botResponse = await messageService.create({
+            roomId,
+            content: 'Sorry! The title length must be between 2 and 30 characters',
+            userId: bot._id,
+            readBy: [userId, bot._id],
+            type: 1,
+          });
+          io.sockets.in(roomId).emit('chat:add-message', { message: botResponse });
+          return;
+        }
         const newColumn = await columnService.create({ title: content, boardId: room.boardId });
         const updatedBoard = await boardService.pushColumnOrder(room.boardId, newColumn._id);
         io.sockets
@@ -50,7 +61,7 @@ const sendRequest = async (req, res, next) => {
       case 'TASK:COLUMN':
         const board = await Board.findById(room.boardId).populate('columns').lean();
         const countColumn = board.columnOrder.length;
-        if (Number(content) !== NaN && Number(content) <= countColumn && Number(content) >= 0) {
+        if (Number(content) !== NaN && Number(content) < countColumn && Number(content) >= 0) {
           botResponse = await messageService.create({
             roomId,
             content: "OK! I remember it, then what's it title?",
@@ -72,6 +83,17 @@ const sendRequest = async (req, res, next) => {
         io.sockets.in(roomId).emit('chat:add-message', { message: botResponse });
         break;
       case 'TASK:TITLE':
+        if (content.length < 2 || content.length > 30) {
+          botResponse = await messageService.create({
+            roomId,
+            content: 'Sorry! The title length must be between 2 and 30 characters',
+            userId: bot._id,
+            readBy: [userId, bot._id],
+            type: 1,
+          });
+          io.sockets.in(roomId).emit('chat:add-message', { message: botResponse });
+          return;
+        }
         const newTask = await taskService.create({ title: content, columnId: botMsgWaiting.botSaveData });
         const updatedColumn = await columnService.pushTaskOrder(botMsgWaiting.botSaveData, newTask._id);
         io.sockets.in(room.boardId.toString()).emit('task:create', { newTask, newTaskOrder: updatedColumn.taskOrder });
