@@ -79,25 +79,53 @@ io.on('connection', onConnection);
 
 cron.schedule('*/60 * * * * *', async () => {
   try {
-    const a = await Task.updateMany({ deadlineDay: { $lt: Date.now() }, status: 'UNFINISHED' }, { status: 'PUSH' });
-    if (a.n === 0) return;
-
-    const tasks = await Task.find({ status: 'PUSH' }).lean();
-    if (!tasks) return;
-    tasks.forEach(async (task) => {
-      const column = await Column.findOne({ taskOrder: Types.ObjectId(task._id) });
-      const newNotification = await notificationService.create({
-        content: {
-          task: { _id: task._id, title: task.title },
-        },
-        receiverId: task.membersId,
-        type: 'TASK:DEADLINE_EXPIRED',
-        boardId: column.boardId,
+    console.log(3);
+    const deadlineExpired = await Task.updateMany(
+      { deadlineDay: { $lt: Date.now() }, status: { $in: ['DOING', 'REMINDER'] } },
+      { status: 'DEADLINE_PUSH' }
+    );
+    const reminder = await Task.updateMany(
+      { reminderDay: { $lt: Date.now() }, status: 'DOING' },
+      { status: 'REMINDER_PUSH' }
+    );
+    if (reminder.n !== 0) {
+      console.log(1);
+      const tasks = await Task.find({ status: 'REMINDER_PUSH' }).lean();
+      if (!tasks) return;
+      tasks.forEach(async (task) => {
+        const column = await Column.findOne({ taskOrder: Types.ObjectId(task._id) });
+        const newNotification = await notificationService.create({
+          content: { task },
+          receiverId: task.membersId,
+          type: 'TASK:REMINDER',
+          boardId: column.boardId,
+        });
+        const updatedTask = await taskService.update(task._id, { status: 'REMINDER' });
+        const membersId = task.membersId.map((item) => item.toString());
+        io.sockets.in(membersId).emit('notification:create', newNotification);
+        io.sockets.in(column.boardId.toString()).emit('task:update', updatedTask);
       });
-      const updatedTask = await taskService.update(task._id, { status: 'DEADLINE_EXPIRED' });
-      io.sockets.in(task.membersId).emit('notification:create', newNotification);
-      io.sockets.in(column.boardId.toString()).emit('task:update', updatedTask);
-    });
+      return;
+    }
+    if (deadlineExpired.n !== 0) {
+      console.log(2);
+      const tasks = await Task.find({ status: 'DEADLINE_PUSH' }).lean();
+      if (!tasks) return;
+      tasks.forEach(async (task) => {
+        const column = await Column.findOne({ taskOrder: Types.ObjectId(task._id) });
+        const newNotification = await notificationService.create({
+          content: { task },
+          receiverId: task.membersId,
+          type: 'TASK:DEADLINE_EXPIRED',
+          boardId: column.boardId,
+        });
+        const updatedTask = await taskService.update(task._id, { status: 'DEADLINE_EXPIRED' });
+        const membersId = task.membersId.map((item) => item.toString());
+        io.sockets.in(membersId).emit('notification:create', newNotification);
+        io.sockets.in(column.boardId.toString()).emit('task:update', updatedTask);
+      });
+      return;
+    }
   } catch (error) {
     console.log(error);
   }

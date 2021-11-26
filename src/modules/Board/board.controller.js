@@ -1,7 +1,9 @@
 import Result from 'helpers/result.helper';
 import botService from 'modules/Bot/bot.service';
+import Member from 'modules/Member/member.model';
 import memberService from 'modules/Member/member.service';
 import roomService from 'modules/Room/room.service';
+import Board from './board.model';
 import boardService from './board.service';
 
 const getAll = async (req, res, next) => {
@@ -35,6 +37,15 @@ const getMyBoardsJoined = async (req, res, next) => {
 const getOne = async (req, res, next) => {
   try {
     const { boardId } = req.params;
+    const userId = req.user._id;
+    const board = await Board.findById(boardId).lean();
+    if (board.isPrivate) {
+      const members = await Member.countDocuments({ boardId, userId }).lean();
+      if (!members) return Result.error(res, { message: 'Access denied' }, 401);
+      const fullBoard = await boardService.getOne(boardId);
+      Result.success(res, fullBoard);
+      return;
+    }
     const fullBoard = await boardService.getOne(boardId);
     Result.success(res, fullBoard);
   } catch (error) {
