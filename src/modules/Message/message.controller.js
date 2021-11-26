@@ -63,7 +63,6 @@ const create = async (req, res, next) => {
     io.sockets.in(room.boardId.toString()).emit('board:new-message', { message: 'new comming' });
     return Result.success(res, { message });
   } catch (err) {
-    console.log(err);
     next(err);
   }
 };

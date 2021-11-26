@@ -7,6 +7,8 @@ const messageSCheme = new Schema(
     readBy: [{ type: Schema.Types.ObjectId, ref: 'users' }],
     type: Number,
     content: String,
+    botWaiting: String,
+    botSaveData: String,
     formId: { type: Schema.Types.ObjectId, ref: 'select-form-messages' },
   },
   {

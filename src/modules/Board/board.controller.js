@@ -1,4 +1,5 @@
 import Result from 'helpers/result.helper';
+import botService from 'modules/Bot/bot.service';
 import Member from 'modules/Member/member.model';
 import memberService from 'modules/Member/member.service';
 import roomService from 'modules/Room/room.service';
