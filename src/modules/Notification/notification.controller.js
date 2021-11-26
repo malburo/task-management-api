@@ -4,8 +4,8 @@ import notificationService from './notification.service';
 const getAll = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const notifications = await notificationService.getAll({ userId });
-    Result.success(res, { notifications });
+    const { notifications, pagination } = await notificationService.getAll(req.query, userId);
+    Result.success(res, { notifications, pagination });
   } catch (error) {
     return next(error);
   }
