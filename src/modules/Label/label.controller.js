@@ -16,7 +16,7 @@ const create = async (req, res, next) => {
     const { boardId } = req.params;
     const { name, color } = req.body;
     const { io } = req.app;
-    const checkExist = await Label.find({ name, color });
+    const checkExist = await Label.find({ name, color, boardId });
     if (checkExist.length > 0) {
       return Result.error(res, 'This label already exists');
     }
