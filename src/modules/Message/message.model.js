@@ -1,15 +1,11 @@
 import { model, Schema } from 'mongoose';
 
-const messageSCheme = new Schema(
+const messageSchema = new Schema(
   {
     roomId: { type: Schema.Types.ObjectId, ref: 'rooms' },
     userId: { type: Schema.Types.ObjectId, ref: 'users' },
-    readBy: [{ type: Schema.Types.ObjectId, ref: 'users' }],
-    type: Number,
     content: String,
-    botWaiting: String,
-    botSaveData: String,
-    formId: { type: Schema.Types.ObjectId, ref: 'select-form-messages' },
+    type: String,
   },
   {
     toJSON: {
@@ -20,27 +16,13 @@ const messageSCheme = new Schema(
   }
 );
 
-messageSCheme.virtual('form', {
-  ref: 'select-form-messages',
-  localField: 'formId',
-  foreignField: '_id',
-  justOne: true,
-});
-
-messageSCheme.virtual('room', {
-  ref: 'rooms',
-  localField: 'roomId',
-  foreignField: '_id',
-  justOne: true,
-});
-
-messageSCheme.virtual('postedBy', {
+messageSchema.virtual('user', {
   ref: 'users',
   localField: 'userId',
   foreignField: '_id',
   justOne: true,
 });
 
-const Message = model('messages', messageSCheme);
+const Message = model('messages', messageSchema);
 
 export default Message;

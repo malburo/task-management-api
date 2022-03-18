@@ -39,7 +39,6 @@ const create = async (req, res, next) => {
     const data = { userId, boardId, role: 'MEMBER' };
     const newMemberRecord = await memberService.create(data);
     const newMember = await userService.getOne({ userId: newMemberRecord.userId });
-    await roomService.addMember({ userId: newMemberRecord.userId, boardId: newMemberRecord.boardId });
 
     const newActivity = await activityService.create({
       content: {

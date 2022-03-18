@@ -67,11 +67,11 @@ const onConnection = (socket) => {
   socket.on('task:leave', (taskId) => {
     socket.leave(taskId);
   });
-  socket.on('chat:join', async (data) => {
-    socket.join(data.roomId);
+  socket.on('chat:join', async (roomId) => {
+    socket.join(roomId);
   });
-  socket.on('chat:leave', (data) => {
-    socket.leave(data.roomId);
+  socket.on('chat:leave', (roomId) => {
+    socket.leave(roomId);
   });
 };
 
