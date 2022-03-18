@@ -1,81 +1,32 @@
 import Result from 'helpers/result.helper';
 import Room from './room.model';
 import roomService from './room.service';
-import Message from 'modules/Message/message.model';
 
-const getGeneralRoomInBoard = async (req, res, next) => {
+const getOneByMemberId = async (req, res, next) => {
   try {
-    const { boardId } = req.params;
-    let room = await Room.findOne({ boardId, isGeneral: true }).populate('board').lean();
-    Result.success(res, { room });
-  } catch (err) {
-    next(err);
-  }
-};
+    const { memberId } = req.params;
+    const { boardId } = req.query;
+    const currentUser = req.user;
 
-const getUserRoomInBoard = async (req, res, next) => {
-  try {
-    const { boardId, userId } = req.params;
-    const room = await Room.findOne({ boardId, isGeneral: false, userId: [req.user._id, userId] }).lean();
-    Result.success(res, { room });
-  } catch (err) {
-    next(err);
-  }
-};
-
-const searchRoom = async (req, res, next) => {
-  try {
-    const { term } = req.query;
-    const { boardId } = req.params;
-    let rooms = await roomService.getAllRoomInBoard({ boardId });
-    rooms = rooms.filter((r) => r.userId.some((i) => i.toString() == req.user._id));
-    let message;
-    let data;
-    rooms = await Promise.all(
-      rooms.map(async (i) => {
-        if (i.isGeneral) {
-          i.name = i.board.title;
-          i.image = i.board.coverId;
-        } else {
-          data = i.members.filter((m) => m._id.toString() != req.user._id.toString())[0];
-          i.name = data.fullname;
-          i.image = data.profilePictureUrl;
-        }
-        message = await Message.find({ roomId: i._id, readBy: { $ne: req.user._id } }).lean();
-        i.newMessage = message.length;
-        return i;
+    let room = await Room.findOne({
+      $or: [
+        { boardId, usersId: [currentUser._id, memberId] },
+        { boardId, usersId: [memberId, currentUser._id] },
+      ],
+    })
+      .populate({
+        path: 'message',
+        populate: {
+          path: 'user',
+        },
       })
-    );
-    const searchRooms = rooms.filter((i) => i.name.match(new RegExp(term, 'i')));
-    Result.success(res, { room: searchRooms });
-  } catch (err) {
-    next(err);
-  }
-};
+      .lean();
+    if (!room) {
+      room = await Room.create({ boardId, usersId: [currentUser._id, memberId], type: 'DIRECT' });
+      room.message = [];
+    }
 
-const getAllYourRoomInBoard = async (req, res, next) => {
-  try {
-    const boardId = req.params;
-    let rooms = await roomService.getAllRoomInBoard(boardId);
-    rooms = rooms.filter((r) => r.userId.some((i) => i.toString() == req.user._id));
-    let message;
-    let data;
-    rooms = await Promise.all(
-      rooms.map(async (i) => {
-        if (i.isGeneral) {
-          i.name = i.board.title;
-          i.image = i.board.coverUrl;
-        } else {
-          data = i.members.filter((m) => m._id.toString() != req.user._id.toString())[0];
-          i.name = data.fullname;
-          i.image = data.profilePictureUrl;
-        }
-        message = await Message.find({ roomId: i._id, readBy: { $ne: req.user._id } }).lean();
-        i.newMessage = message.length;
-        return i;
-      })
-    );
-    Result.success(res, { rooms });
+    Result.success(res, { room });
   } catch (err) {
     next(err);
   }
@@ -83,46 +34,43 @@ const getAllYourRoomInBoard = async (req, res, next) => {
 
 const getOne = async (req, res, next) => {
   try {
-    const roomId = req.params;
-    const room = await roomService.getOne(roomId);
-    if (room.isGeneral) room.name = room.board.title;
-    else room.name = room.members.filter((m) => m._id.toString() != req.user._id.toString())[0].fullname;
+    const { roomId } = req.params;
+    let room = await Room.findById(roomId).populate('members').lean();
+    if (!room.name || room.name === '') {
+      const user = room.members.find((user) => user._id.toString() !== req.user._id.toString());
+      if (!user) room.name = req.user.username;
+      else room.name = user.username;
+    }
     Result.success(res, { room });
   } catch (err) {
     next(err);
   }
 };
 
-const addMember = async (req, res, next) => {
+const getAllRoom = async (req, res, next) => {
   try {
-    const { boardId } = req.params;
-    const { userId } = req.body;
-    const room = await roomService.addMember({ boardId, userId });
-    Result.success(res, room);
-  } catch (err) {
+    const { boardId } = req.query;
+    const rooms = await Room.find({ boardId });
+    Result.success(res, { rooms });
+  } catch (error) {
     next(err);
   }
 };
 
-const removeMember = async (req, res, next) => {
+const create = async (req, res, next) => {
   try {
-    const { boardId } = req.params;
-    const { userId } = req.body;
-    const room = await roomService.removeMember({ boardId, userId });
-    Result.success(res, { room });
-  } catch (err) {
-    next(err);
+    const newRoom = await roomService.create(req.body);
+    Result.success(res, { newRoom });
+  } catch (error) {
+    return next(error);
   }
 };
 
 const roomController = {
-  getAllYourRoomInBoard,
+  getOneByMemberId,
   getOne,
-  addMember,
-  removeMember,
-  getUserRoomInBoard,
-  getGeneralRoomInBoard,
-  searchRoom,
+  getAllRoom,
+  create,
 };
 
 export default roomController;

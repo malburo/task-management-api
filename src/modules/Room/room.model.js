@@ -1,13 +1,11 @@
 import { model, Schema } from 'mongoose';
 
-const roomScheme = new Schema(
+const roomSchema = new Schema(
   {
     boardId: { type: Schema.Types.ObjectId, ref: 'boards' },
-    userId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
+    usersId: [{ type: Schema.Types.ObjectId, ref: 'users' }],
     name: String,
-    isGeneral: Boolean,
-    isBot: Boolean,
-    newMessage: Number,
+    type: String,
   },
   {
     toJSON: {
@@ -18,19 +16,25 @@ const roomScheme = new Schema(
   }
 );
 
-roomScheme.virtual('board', {
+roomSchema.virtual('board', {
   ref: 'boards',
   localField: 'boardId',
   foreignField: '_id',
   justOne: true,
 });
 
-roomScheme.virtual('members', {
+roomSchema.virtual('members', {
   ref: 'users',
-  localField: 'userId',
+  localField: 'usersId',
   foreignField: '_id',
 });
 
-const Room = model('rooms', roomScheme);
+roomSchema.virtual('message', {
+  ref: 'messages',
+  localField: '_id',
+  foreignField: 'roomId',
+});
+
+const Room = model('rooms', roomSchema);
 
 export default Room;

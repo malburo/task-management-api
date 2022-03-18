@@ -57,7 +57,7 @@ const create = async (req, res, next) => {
   try {
     const newBoard = await boardService.create(req.body);
     const owner = await memberService.create({ userId: req.user._id, boardId: newBoard._id, role: 'OWNER' });
-    await roomService.createBaseRoomForBoard({ userId: req.user._id, boardId: newBoard._id });
+    await roomService.create({ boardId: newBoard._id, name: 'General', type: 'GROUP' });
     Result.success(res, { newBoard, owner });
   } catch (error) {
     return next(error);

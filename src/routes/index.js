@@ -2,7 +2,6 @@ import Result from 'helpers/result.helper';
 import checkToken from 'middlewares/token.middleware';
 import AuthRouter from 'modules/Auth/auth.route';
 import BoardRouter from 'modules/Board/board.route';
-import BotRouter from 'modules/Bot/bot.route';
 import ColumnRouter from 'modules/Column/column.route';
 import CommentRouter from 'modules/Comment/comment.route';
 import LabelRouter from 'modules/Label/label.route';
@@ -24,13 +23,13 @@ const MasterRouter = (app) => {
   app.use('/api/columns', checkToken, ColumnRouter);
   app.use('/api/members', checkToken, MemberRouter);
   app.use('/api/users', checkToken, UserRouter);
-  app.use('/api/rooms', checkToken, RoomRouter);
-  app.use('/api/messages', checkToken, MessageRouter);
   app.use('/api/comments', checkToken, CommentRouter);
   app.use('/api/search', checkToken, SearchRouter);
   app.use('/api/notifications', checkToken, NotificationRouter);
   app.use('/api/uploads', UploadRouter);
-  app.use('/api/bot', checkToken, BotRouter);
+  app.use('/api/rooms', checkToken, RoomRouter);
+  app.use('/api/messages', checkToken, MessageRouter);
+  // app.use('/api/bot', checkToken, BotRouter);
   app.use((req, res, next) => Result.error(res, { message: 'API Not Found' }, 404));
 };
 
