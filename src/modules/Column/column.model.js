@@ -5,6 +5,9 @@ const ColumnSchema = new Schema(
     title: String,
     boardId: { type: Schema.Types.ObjectId, ref: 'boards' },
     taskOrder: [{ type: Schema.Types.ObjectId, ref: 'tasks', default: [] }],
+    workflows: [{ type: Schema.Types.ObjectId, ref: 'columns', default: [] }],
+    workflowX: Number,
+    workflowY: Number,
   },
   {
     toJSON: {

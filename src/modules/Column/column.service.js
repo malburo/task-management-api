@@ -39,5 +39,32 @@ const pushTaskOrder = async (columnId, taskId) => {
     throw error;
   }
 };
-const columnService = { create, update, deleteOne, pushTaskOrder };
+
+const pushWorkflow = async (columnId, data) => {
+  try {
+    const updatedColumn = await Column.findOneAndUpdate(
+      { _id: columnId },
+      { $push: { workflows: data } },
+      { new: true }
+    ).lean();
+    return updatedColumn;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const pullWorkflow = async (columnId, data) => {
+  try {
+    const updatedColumn = await Column.findOneAndUpdate(
+      { _id: columnId },
+      { $pull: { workflows: data } },
+      { new: true }
+    ).lean();
+    return updatedColumn;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const columnService = { create, update, deleteOne, pushTaskOrder, pushWorkflow, pullWorkflow };
 export default columnService;

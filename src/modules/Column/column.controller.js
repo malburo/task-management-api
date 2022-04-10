@@ -68,5 +68,35 @@ const deleteOne = async (req, res, next) => {
   }
 };
 
-const columnController = { create, update, deleteOne };
+const pushWorkflow = async (req, res, next) => {
+  try {
+    const { columnId } = req.params;
+    const { data } = req.body;
+    const { io } = req.app;
+
+    const updatedColumn = await columnService.pushWorkflow(columnId, data);
+    io.sockets.in(updatedColumn.boardId.toString()).emit('column:update', updatedColumn);
+
+    Result.success(res, { updatedColumn });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const pullWorkflow = async (req, res, next) => {
+  try {
+    const { columnId } = req.params;
+    const { data } = req.body;
+    const { io } = req.app;
+
+    const updatedColumn = await columnService.pullWorkflow(columnId, data);
+    io.sockets.in(updatedColumn.boardId.toString()).emit('column:update', updatedColumn);
+
+    Result.success(res, { updatedColumn });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const columnController = { create, update, deleteOne, pushWorkflow, pullWorkflow };
 export default columnController;

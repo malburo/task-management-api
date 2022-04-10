@@ -13,6 +13,7 @@ import SearchRouter from 'modules/Search/search.route';
 import TaskRouter from 'modules/Task/task.route';
 import UploadRouter from 'modules/Upload/upload.route';
 import UserRouter from 'modules/User/user.route';
+import WhiteboardRouter from 'modules/Whiteboard/whiteboard.route';
 
 const MasterRouter = (app) => {
   app.get('/', (req, res) => Result.success(res, { message: 'Welcome to task management <3' }));
@@ -29,7 +30,7 @@ const MasterRouter = (app) => {
   app.use('/api/uploads', UploadRouter);
   app.use('/api/rooms', checkToken, RoomRouter);
   app.use('/api/messages', checkToken, MessageRouter);
-  // app.use('/api/bot', checkToken, BotRouter);
+  app.use('/api/whiteboards', checkToken, WhiteboardRouter);
   app.use((req, res, next) => Result.error(res, { message: 'API Not Found' }, 404));
 };
 

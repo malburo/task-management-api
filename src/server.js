@@ -19,7 +19,7 @@ import notificationService from 'modules/Notification/notification.service.js';
 import Column from 'modules/Column/column.model.js';
 import { Types } from 'mongoose';
 import taskService from 'modules/Task/task.service.js';
-
+import { sendMail } from './config/nodemailer.config';
 require('dotenv').config();
 
 const app = express();
@@ -55,6 +55,10 @@ const onConnection = (socket) => {
       }
     } catch (error) {}
   });
+  socket.on('test', async () => {
+    app.io = io;
+    app.socket = socket;
+  });
   socket.on('board:join', (boardId) => {
     socket.join(boardId);
   });
@@ -73,13 +77,18 @@ const onConnection = (socket) => {
   socket.on('chat:leave', (roomId) => {
     socket.leave(roomId);
   });
+  socket.on('whiteboard:join', async (whiteboardId) => {
+    socket.join(whiteboardId);
+  });
+  socket.on('whiteboard:leave', (whiteboardId) => {
+    socket.leave(whiteboardId);
+  });
 };
 
 io.on('connection', onConnection);
 
 // cron.schedule('*/60 * * * * *', async () => {
 //   try {
-//     console.log(3);
 //     const deadlineExpired = await Task.updateMany(
 //       { deadlineDay: { $lt: Date.now() }, status: { $in: ['DOING', 'REMINDER'] } },
 //       { status: 'DEADLINE_PUSH' }
@@ -89,7 +98,6 @@ io.on('connection', onConnection);
 //       { status: 'REMINDER_PUSH' }
 //     );
 //     if (reminder.n !== 0) {
-//       console.log(1);
 //       const tasks = await Task.find({ status: 'REMINDER_PUSH' }).lean();
 //       if (!tasks) return;
 //       tasks.forEach(async (task) => {
@@ -101,6 +109,8 @@ io.on('connection', onConnection);
 //           boardId: column.boardId,
 //         });
 //         const updatedTask = await taskService.update(task._id, { status: 'REMINDER' });
+//         const emailList = updatedTask.membersId.map((member) => member.email);
+//         await sendMail(emailList, 'hihihihihihihihi @@@');
 //         const membersId = task.membersId.map((item) => item.toString());
 //         io.sockets.in(membersId).emit('notification:create', newNotification);
 //         io.sockets.in(column.boardId.toString()).emit('task:update', updatedTask);
@@ -108,7 +118,6 @@ io.on('connection', onConnection);
 //       return;
 //     }
 //     if (deadlineExpired.n !== 0) {
-//       console.log(2);
 //       const tasks = await Task.find({ status: 'DEADLINE_PUSH' }).lean();
 //       if (!tasks) return;
 //       tasks.forEach(async (task) => {
