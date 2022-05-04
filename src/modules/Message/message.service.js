@@ -26,10 +26,33 @@ const getAll = async ({ page = 1, limit = 8, q = '' }, roomId) => {
     throw error;
   }
 };
+const update = async (messageId, updateData) => {
+  try {
+    const updatedMessage = await Message.findByIdAndUpdate(messageId, { $set: updateData }, { new: true }).lean();
+    return updatedMessage;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const pushReadBy = async (roomId, userId) => {
+  try {
+    const updatedMessage = await Message.updateMany(
+      { roomId },
+      { $addToSet: { readBy: userId } },
+      { new: true }
+    ).lean();
+    return updatedMessage;
+  } catch (error) {
+    throw error;
+  }
+};
 
 const messageService = {
   create,
   getAll,
+  update,
+  pushReadBy,
 };
 
 export default messageService;

@@ -11,13 +11,25 @@ const getAll = async (req, res, next) => {
   }
 };
 
-const create = async (req, res, next) => {
+const update = async (req, res, next) => {
   try {
-    Result.success(res, {});
+    const { notificationId } = req.params;
+    const updateData = { ...req.body, updateAt: Date.now() };
+    const updatedNotification = await notificationService.update(notificationId, updateData);
+    Result.success(res, { updatedNotification });
   } catch (error) {
     return next(error);
   }
 };
 
-const notificationController = { create, getAll };
+const deleteAll = async (req, res, next) => {
+  try {
+    const deletedNotification = await notificationService.deleteAll(req.user._id);
+    Result.success(res, { deletedNotification });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const notificationController = { getAll, update, deleteAll };
 export default notificationController;

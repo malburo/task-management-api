@@ -1,5 +1,6 @@
 import Result from 'helpers/result.helper';
 import Room from './room.model';
+import Message from '../Message/message.model';
 import roomService from './room.service';
 
 const getOneByMemberId = async (req, res, next) => {
@@ -50,10 +51,14 @@ const getOne = async (req, res, next) => {
 const getAllRoom = async (req, res, next) => {
   try {
     const { boardId } = req.query;
-    const rooms = await Room.find({ boardId });
+    let rooms = await Room.find({ boardId }).lean();
+    for (const room of rooms) {
+      const unReadCount = await Message.find({ roomId: room._id, readBy: { $nin: req.user._id } }).countDocuments();
+      room.unReadCount = unReadCount;
+    }
     Result.success(res, { rooms });
   } catch (error) {
-    next(err);
+    next(error);
   }
 };
 

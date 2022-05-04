@@ -12,13 +12,12 @@ const create = async (req, res, next) => {
       content,
       userId: currentUser._id,
       type,
+      readBy: [currentUser._id],
     });
-    const room = await Room.findById(roomId).lean();
-    if (room.usersId.length === 0) {
-      io.to(roomId).emit('messages:create', message);
-      return Result.success(res, { message });
-    }
-    io.to(room.usersId.map((item) => item.toString())).emit('messages:create', message);
+    const [room] = await Promise.all([Room.findById(roomId).lean(), messageService.pushReadBy(roomId, req.user._id)]);
+
+    io.to(room.boardId.toString()).emit('rooms:update', room);
+    io.to(roomId).emit('messages:create', message);
     return Result.success(res, { message });
   } catch (err) {
     next(err);
@@ -28,7 +27,7 @@ const create = async (req, res, next) => {
 const getAll = async (req, res, next) => {
   try {
     const { roomId } = req.params;
-    console.log(req.query);
+    await messageService.pushReadBy(roomId, req.user._id);
     const { messages, pagination } = await messageService.getAll(req.query, roomId);
     Result.success(res, { messages, pagination });
   } catch (err) {

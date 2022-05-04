@@ -24,5 +24,27 @@ const create = async (data) => {
   }
 };
 
-const notificationService = { getAll, create };
+const update = async (notificationId, updateData) => {
+  try {
+    const updatedNotification = await Notification.findByIdAndUpdate(
+      notificationId,
+      { $set: updateData },
+      { new: true }
+    ).lean();
+    return updatedNotification;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const deleteAll = async (userId) => {
+  try {
+    const deletedNotification = await Notification.deleteMany({ receiverId: userId }).lean();
+    return deletedNotification;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const notificationService = { getAll, create, update, deleteAll };
 export default notificationService;

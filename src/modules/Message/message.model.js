@@ -5,6 +5,7 @@ const messageSchema = new Schema(
     roomId: { type: Schema.Types.ObjectId, ref: 'rooms' },
     userId: { type: Schema.Types.ObjectId, ref: 'users' },
     content: String,
+    readBy: [{ type: Schema.Types.ObjectId, ref: 'users' }],
     type: String,
   },
   {
