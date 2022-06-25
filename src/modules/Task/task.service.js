@@ -10,9 +10,7 @@ const create = async (data) => {
 };
 const update = async (taskId, updateData) => {
   try {
-    const updatedTask = await Task.findByIdAndUpdate(taskId, { $set: updateData }, { new: true })
-      .populate('membersId')
-      .lean();
+    const updatedTask = await Task.findByIdAndUpdate(taskId, { $set: updateData }, { new: true }).lean();
     return updatedTask;
   } catch (error) {
     throw error;
